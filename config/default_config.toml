@@ -11,7 +11,8 @@ F = { label = "Ancient hallway segment", tags = ["ancient", "stone", "echoing"] 
 [ollama]
 endpoint = "https://341f48ced197.ngrok-free.app"
 completion_path = "/v1/completions"
-model = "qwen3:latest"
+model = "deepseek-r1:1.5b"
+timeout = 120
 
 [ollama.options]
 temperature = 0.7

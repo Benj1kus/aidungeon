@@ -36,6 +36,7 @@ class OllamaConfig:
     model: str
     options: Mapping[str, Any]
     completion_path: str
+    timeout: float
     prompt: PromptConfig
 
 
@@ -109,11 +110,13 @@ def load_config(path: str | Path) -> Config:
     endpoint = str(ollama_raw.get("endpoint", "http://127.0.0.1:11434"))
     model = str(ollama_raw.get("model", "llama3"))
     completion_path = str(ollama_raw.get("completion_path", "/api/generate"))
+    timeout = float(ollama_raw.get("timeout", 60))
     ollama_config = OllamaConfig(
         endpoint=endpoint.rstrip("/"),
         model=model,
         options=dict(options_raw),
         completion_path=completion_path,
+        timeout=timeout,
         prompt=prompt,
     )
 

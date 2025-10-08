@@ -14,7 +14,7 @@ This project sketches a lightweight, offline-friendly workflow for generating du
    ```bash
    pip install -e .
    ```
-3. Adjust the configuration at `config/default_config.toml` or provide your own TOML file. The default points to a hosted Ollama-compatible endpoint at `https://341f48ced197.ngrok-free.app/v1/completions`; swap in your own URL if needed.
+3. Adjust the configuration at `config/default_config.toml` or provide your own TOML file. The default points to a hosted Ollama-compatible endpoint at `https://341f48ced197.ngrok-free.app/v1/completions`, targeting the faster `deepseek-r1:1.5b` model with a 120 s request timeout; swap in your own URL/model or tweak `timeout` if needed.
 4. Generate a dungeon and descriptions:
    ```bash
    aidungeon --config config/default_config.toml
