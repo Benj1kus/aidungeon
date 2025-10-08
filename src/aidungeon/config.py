@@ -18,6 +18,7 @@ class SymbolConfig:
 
 @dataclass(frozen=True)
 class DungeonConfig:
+    grammar_path: Path
     axiom: str
     iterations: int
     rules: Mapping[str, str]
@@ -79,18 +80,34 @@ def load_config(path: str | Path) -> Config:
     dungeon_raw = raw.get("dungeon")
     if not isinstance(dungeon_raw, Mapping):
         raise ValueError("Missing [dungeon] section.")
-    rules = dungeon_raw.get("rules", {})
-    if not isinstance(rules, Mapping) or not rules:
-        raise ValueError("No production rules found under [dungeon.rules].")
+    grammar_file = dungeon_raw.get("grammar_file")
+    if not isinstance(grammar_file, str) or not grammar_file.strip():
+        raise ValueError("Missing dungeon.grammar_file entry.")
+    grammar_path = Path(grammar_file)
+    if not grammar_path.is_absolute():
+        grammar_path = (config_path.parent / grammar_path).resolve()
+    if not grammar_path.exists():
+        raise FileNotFoundError(f"Grammar file not found: {grammar_path}")
+    with grammar_path.open("rb") as grammar_handle:
+        grammar_raw = tomllib.load(grammar_handle)
+    grammar_section = grammar_raw.get("grammar")
+    if not isinstance(grammar_section, Mapping):
+        raise ValueError("Grammar file must contain a [grammar] table.")
+    axiom = str(grammar_section.get("axiom", "")).strip()
+    if not axiom:
+        raise ValueError("Grammar file missing 'axiom' entry.")
+    rules_raw = grammar_section.get("rules", {})
+    if not isinstance(rules_raw, Mapping) or not rules_raw:
+        raise ValueError("Grammar file missing [grammar.rules] table.")
     symbols = dungeon_raw.get("symbols", {})
     if not isinstance(symbols, MutableMapping) or not symbols:
         raise ValueError("No symbol definitions found under [dungeon.symbols].")
     iterations = int(dungeon_raw.get("iterations", 1))
-    axiom = str(dungeon_raw.get("axiom", "F"))
     dungeon_config = DungeonConfig(
+        grammar_path=grammar_path,
         axiom=axiom,
         iterations=iterations,
-        rules={str(k): str(v) for k, v in rules.items()},
+        rules={str(k): str(v) for k, v in rules_raw.items()},
         symbols=_ensure_symbol_config(symbols),
     )
 

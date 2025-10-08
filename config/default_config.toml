@@ -1,12 +1,11 @@
 [dungeon]
-axiom = "F"
+grammar_file = "grammars/classic.toml"
 iterations = 3
 
-[dungeon.rules]
-F = "F[+F]F[-F]F"
-
 [dungeon.symbols]
-F = { label = "Ancient hallway segment", tags = ["ancient", "stone", "echoing"] }
+F = { label = "Twisting corridor", tags = ["stone", "narrow", "torchlit"] }
+K = { label = "Key shrine", tags = ["mystic", "glowing", "runes"] }
+M = { label = "Beast lair", tags = ["musky", "clawed", "danger"] }
 
 [ollama]
 endpoint = "https://341f48ced197.ngrok-free.app"

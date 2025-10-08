@@ -1,0 +1,7 @@
+[grammar]
+axiom = "F"
+
+[grammar.rules]
+F = "F[+K]F[-M]F"
+K = "K"
+M = "M"

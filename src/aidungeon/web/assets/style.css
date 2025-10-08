@@ -1,0 +1,184 @@
+:root {
+  color-scheme: dark;
+  --bg: #121418;
+  --panel: #1f232b;
+  --accent: #4db6ac;
+  --accent-muted: #295f59;
+  --text: #f5f7fa;
+  --text-muted: #a6acb8;
+  --danger: #ff8a65;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #1d2530 0%, #0e1014 60%, #040507 100%);
+  color: var(--text);
+  font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  padding: 1.5rem 2rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+}
+
+header button {
+  background-color: var(--accent);
+  border: none;
+  color: var(--bg);
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+header button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(77, 182, 172, 0.25);
+}
+
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 1.5rem;
+  padding: 0 2rem 2rem;
+}
+
+.panel {
+  background: rgba(18, 21, 27, 0.85);
+  border: 1px solid rgba(77, 182, 172, 0.12);
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+}
+
+.room-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.room-name {
+  font-size: 1.9rem;
+  margin: 0.4rem 0 0.8rem;
+}
+
+.room-description {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.room-tags {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.room-tags span {
+  border: 1px solid rgba(77, 182, 172, 0.4);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--accent);
+  background: rgba(77, 182, 172, 0.08);
+}
+
+.connections h2 {
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.connections ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.connections button {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(77, 182, 172, 0.2);
+  background: transparent;
+  color: inherit;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.connections button:hover,
+.connections button:focus {
+  border-color: var(--accent);
+  background: rgba(77, 182, 172, 0.12);
+  outline: none;
+}
+
+.map-panel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  background: rgba(15, 18, 23, 0.75);
+  border: 1px solid rgba(77, 182, 172, 0.08);
+}
+
+.status-bar {
+  margin-top: 1rem;
+  padding: 0 2rem 2rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.status-bar span {
+  background: rgba(18, 21, 27, 0.85);
+  border: 1px solid rgba(77, 182, 172, 0.12);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+}
+
+@media (max-width: 1024px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+
+  .map-panel {
+    min-height: 320px;
+  }
+}

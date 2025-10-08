@@ -14,13 +14,20 @@ This project sketches a lightweight, offline-friendly workflow for generating du
    ```bash
    pip install -e .
    ```
-3. Adjust the configuration at `config/default_config.toml` or provide your own TOML file. The default points to a hosted Ollama-compatible endpoint at `https://341f48ced197.ngrok-free.app/v1/completions`, targeting the faster `deepseek-r1:1.5b` model with a 120 s request timeout; swap in your own URL/model or tweak `timeout` if needed.
+3. Adjust the configuration at `config/default_config.toml` or provide your own TOML file. The default points to a hosted Ollama-compatible endpoint at `https://341f48ced197.ngrok-free.app/v1/completions`, targeting the faster `deepseek-r1:1.5b` model with a 120 s request timeout; swap in your own URL/model or tweak `timeout` if needed. The L-system grammar itself lives in `config/grammars/classic.toml` and is referenced by name in the config, so you can swap grammars without touching code. Each unique symbol prompts the narrator once (responses are cached after stripping any `<think>...</think>` metadata), so performance scales with the variety of room types rather than total rooms.
 4. Generate a dungeon and descriptions:
    ```bash
    aidungeon --config config/default_config.toml
    ```
 
 If Ollama is unavailable, the CLI falls back to placeholder text so you can still iterate on the grammar design.
+
+## Web Explorer
+- Launch the interactive web UI:
+  ```bash
+  aidungeon-web --config config/default_config.toml --host 127.0.0.1 --port 8000
+  ```
+- Open `http://127.0.0.1:8000` to explore the dungeon. Click room cards to move between connections or regenerate an entirely new layout using the button in the header.
 
 ## Configuration
 The configuration file governs both the grammar expansion and the narrative prompts. See `config/default_config.toml` for a documented example.

@@ -6,10 +6,13 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "requests>=2.31.0",
+    "fastapi>=0.110.0",
+    "uvicorn>=0.23.0",
 ]
 
 [project.scripts]
 aidungeon = "aidungeon.main:main"
+aidungeon-web = "aidungeon.web.app:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

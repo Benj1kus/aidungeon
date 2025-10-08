@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import replace
+import re
 import sys
 import threading
 import time
+from typing import Dict
 
 import requests
 
@@ -111,6 +113,8 @@ class NarrativeGenerator:
         self._system_prompt = ollama.prompt.system
         self._fallback = narrative.fallback
         self._global_cues = narrative.global_cues
+        self._cache: Dict[str, str] = {}
+        self._think_pattern = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
 
     def annotate(self, dungeon: Dungeon) -> Dungeon:
         updated_rooms = {}
@@ -118,11 +122,15 @@ class NarrativeGenerator:
             if room.symbol == "S":
                 updated_rooms[room.id] = room
                 continue
-            description = self._describe_room(room)
+            description = self._describe_symbol(room)
             updated_rooms[room.id] = replace(room, description=description)
         return Dungeon(rooms=updated_rooms, adjacency=dungeon.adjacency)
 
-    def _describe_room(self, room: Room) -> str:
+    def _describe_symbol(self, room: Room) -> str:
+        cache_key = f"{room.symbol}:{room.label}"
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached
         path_summary = "start"
         if room.trail:
             path_summary = "start -> " + " -> ".join(room.trail)
@@ -148,4 +156,10 @@ class NarrativeGenerator:
                 global_cues=self._global_cues,
                 path_summary=path_summary,
             )
-        return output.strip()
+        description = self._clean_response(output)
+        self._cache[cache_key] = description
+        return description
+
+    def _clean_response(self, text: str) -> str:
+        cleaned = self._think_pattern.sub("", text)
+        return cleaned.strip()

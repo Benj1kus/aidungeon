@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Dungeon Explorer</title>
+    <link rel="stylesheet" href="/assets/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>AI Dungeon Explorer</h1>
+      <button type="button" data-reset>Regenerate Dungeon</button>
+    </header>
+    <main>
+      <section class="panel">
+        <div class="room-label" data-room-label>Room</div>
+        <h2 class="room-name" data-room-name>Loading...</h2>
+        <p class="room-description" data-room-description></p>
+        <div class="room-tags" data-room-tags></div>
+        <div class="breadcrumbs" data-breadcrumbs></div>
+        <div class="connections">
+          <h2>Available Paths</h2>
+          <ul data-connections></ul>
+        </div>
+      </section>
+      <section class="panel map-panel">
+        <canvas data-map width="600" height="600"></canvas>
+      </section>
+    </main>
+    <div class="status-bar">
+      <span data-status-distance>Steps: 0</span>
+      <span data-status-rooms>Rooms: 0</span>
+    </div>
+    <script src="/assets/app.js" defer></script>
+  </body>
+</html>
