@@ -51,4 +51,4 @@ This project layers several procedural generation techniques to produce a playab
 6. Call Ollama for rooms, loot, monsters; apply fallbacks/cleanup.
 7. Serve final dungeon to CLI and web interfaces.
 
-Students can tweak grammar weights, evaluation heuristics, or prompt templates to see how each stage affects the overall experience.
+Users can tweak grammar weights, evaluation heuristics, or prompt templates to see how each stage affects the overall experience.
