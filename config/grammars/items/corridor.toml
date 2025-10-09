@@ -1,7 +1,6 @@
 [grammar]
-axiom = "TP"
+axiom = "T"
+iterations = 1
 
 [grammar.rules]
-T = "TL"
-P = "P"
-L = "LP"
+T = "''(0.8), P(0.2)"

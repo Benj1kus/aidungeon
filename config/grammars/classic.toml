@@ -2,6 +2,6 @@
 axiom = "F"
 
 [grammar.rules]
-F = "F[+K]F[-M]F"
-K = "K"
-M = "M"
+F = "F[+K]F[-M]F(0.4), F[+F]F[-F]F(0.3), FF(0.3)"
+K = "K(0.67), KF(0.33)"
+M = "M(0.67), MF(0.33)"

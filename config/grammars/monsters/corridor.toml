@@ -1,6 +1,6 @@
 [grammar]
 axiom = "S"
+iterations = 1
 
 [grammar.rules]
-S = "SN"
-N = "NS"
+S = "''(0.75), S(0.15), N(0.1)"

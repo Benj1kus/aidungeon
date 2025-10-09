@@ -2,6 +2,7 @@
   const state = {
     dungeon: null,
     currentRoom: 0,
+    visited: new Set([0]),
   };
 
   const elements = {
@@ -58,6 +59,8 @@
     const room = state.dungeon.rooms[state.currentRoom];
     if (!room) return;
 
+    state.visited.add(room.id);
+
     elements.roomLabel.textContent = `Room ${room.id}`;
     elements.roomName.textContent = room.label;
     elements.roomDescription.textContent = room.description || "No narrative available.";
@@ -76,11 +79,16 @@
 
     elements.connections.innerHTML = "";
     const neighbors = state.dungeon.adjacency[room.id] || [];
+    const directionMap = state.dungeon.directions[room.id] || {};
     neighbors.forEach((neighborId) => {
       const nextRoom = state.dungeon.rooms[neighborId];
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = `➡ ${nextRoom.label}`;
+      const directionName = (directionMap[neighborId] || "").toLowerCase();
+      const keyHint = directionName ? keyDirectionHints[directionName] || "" : "";
+      const directionLabel = directionName ? `${directionName.toUpperCase()} → ` : "→ ";
+      const hintLabel = keyHint ? ` [${keyHint}]` : "";
+      button.textContent = `${directionLabel}${nextRoom.label}${hintLabel}`;
       button.addEventListener("click", () => {
         state.currentRoom = neighborId;
         renderRoom();
@@ -149,13 +157,39 @@
 
     rooms.forEach((room) => {
       const point = project(room);
+      const visited = state.visited.has(room.id);
       const isActive = room.id === state.currentRoom;
       ctx.beginPath();
-      ctx.fillStyle = isActive ? "#ff8a65" : "#4db6ac";
-      ctx.shadowBlur = isActive ? 18 : 8;
+      ctx.fillStyle = isActive
+        ? "#ff8a65"
+        : visited
+        ? "#4db6ac"
+        : "rgba(77, 182, 172, 0.25)";
+      ctx.shadowBlur = isActive ? 18 : visited ? 8 : 0;
       ctx.shadowColor = ctx.fillStyle;
       ctx.arc(point.x, point.y, isActive ? 7 : 5, 0, Math.PI * 2);
       ctx.fill();
+
+      if (!visited) {
+        return;
+      }
+
+      const hasItems = room.items && room.items.length;
+      const hasMonsters = room.monsters && room.monsters.length;
+      ctx.shadowBlur = 0;
+      if (hasItems) {
+        ctx.fillStyle = "#ffd54f";
+        ctx.fillRect(point.x - 9, point.y - 14, 6, 6);
+      }
+      if (hasMonsters) {
+        ctx.fillStyle = "#ef5350";
+        ctx.beginPath();
+        ctx.moveTo(point.x + 5, point.y + 8);
+        ctx.lineTo(point.x + 11, point.y + 14);
+        ctx.lineTo(point.x - 1, point.y + 14);
+        ctx.closePath();
+        ctx.fill();
+      }
     });
     ctx.shadowBlur = 0;
   };
@@ -190,7 +224,41 @@
     Object.entries(raw.adjacency || {}).forEach(([id, neighbors]) => {
       adjacency[Number(id)] = (neighbors || []).map((value) => Number(value));
     });
-    return { ...raw, rooms, adjacency };
+    const directions = {};
+    Object.entries(raw.directions || {}).forEach(([id, neighbors]) => {
+      const numericId = Number(id);
+      directions[numericId] = {};
+      Object.entries(neighbors || {}).forEach(([neighborId, direction]) => {
+        directions[numericId][Number(neighborId)] = direction;
+      });
+    });
+    return { ...raw, rooms, adjacency, directions };
+  };
+
+  const keyDirectionMap = {
+    w: "north",
+    a: "west",
+    s: "south",
+    d: "east",
+  };
+
+  const keyDirectionHints = {
+    north: "W",
+    south: "S",
+    east: "D",
+    west: "A",
+  };
+
+  const tryMove = (directionName) => {
+    if (!state.dungeon) return;
+    const roomDirections = state.dungeon.directions[state.currentRoom] || {};
+    const entry = Object.entries(roomDirections).find(([, dir]) => dir.toLowerCase() === directionName);
+    if (!entry) return;
+    const [neighborId] = entry;
+    state.currentRoom = Number(neighborId);
+    renderRoom();
+    renderBreadcrumbs();
+    renderMap();
   };
 
   const loadDungeon = async (opts = {}) => {
@@ -199,6 +267,7 @@
       const rawDungeon = await fetchDungeon(opts);
       state.dungeon = normalizeDungeon(rawDungeon);
       state.currentRoom = 0;
+      state.visited = new Set([0]);
       renderRoom();
       renderBreadcrumbs();
       renderMap();
@@ -213,6 +282,14 @@
   elements.resetButton.addEventListener("click", () => loadDungeon({ reload: true }));
 
   window.addEventListener("resize", () => renderMap());
+
+  window.addEventListener("keydown", (event) => {
+    if (!state.dungeon) return;
+    const directionName = keyDirectionMap[event.key.toLowerCase()];
+    if (!directionName) return;
+    event.preventDefault();
+    tryMove(directionName);
+  });
 
   loadDungeon();
 })();

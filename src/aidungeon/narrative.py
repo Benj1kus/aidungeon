@@ -124,7 +124,7 @@ class NarrativeGenerator:
                 continue
             description = self._describe_symbol(room)
             updated_rooms[room.id] = replace(room, description=description)
-        return Dungeon(rooms=updated_rooms, adjacency=dungeon.adjacency)
+        return Dungeon(rooms=updated_rooms, adjacency=dungeon.adjacency, directions=dungeon.directions)
 
     def _describe_symbol(self, room: Room) -> str:
         cache_key = f"{room.symbol}:{room.label}"

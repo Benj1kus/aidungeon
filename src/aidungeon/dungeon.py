@@ -28,12 +28,14 @@ class Room:
     description: str = ""
     items: Sequence[Entity] = field(default_factory=tuple)
     monsters: Sequence[Entity] = field(default_factory=tuple)
+    visited: bool = False
 
 
 @dataclass
 class Dungeon:
     rooms: Mapping[int, Room]
     adjacency: Mapping[int, Sequence[int]]
+    directions: Mapping[int, Mapping[int, str]] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, object]:
         return {
@@ -45,6 +47,7 @@ class Dungeon:
                     "position": list(room.position),
                     "trail": list(room.trail),
                     "description": room.description,
+                    "visited": room.visited,
                     "items": [
                         {
                             "symbol": item.symbol,
@@ -65,10 +68,18 @@ class Dungeon:
                         }
                         for monster in room.monsters
                     ],
+                    "directions": {
+                        neighbor_id: direction
+                        for neighbor_id, direction in self.directions.get(room_id, {}).items()
+                    },
                 }
                 for room_id, room in self.rooms.items()
             },
             "adjacency": {room_id: list(neighbors) for room_id, neighbors in self.adjacency.items()},
+            "directions": {
+                room_id: dict(neighbor_map)
+                for room_id, neighbor_map in self.directions.items()
+            },
         }
 
 
@@ -79,11 +90,13 @@ class DungeonBuilder:
     def build(self, grammar: str, symbols: Mapping[str, SymbolConfig]) -> Dungeon:
         rooms: Dict[int, Room] = {}
         neighbors: Dict[int, List[int]] = {}
+        direction_map: Dict[int, Dict[int, str]] = {}
         rooms_by_position: Dict[Vec2, int] = {}
         trails: Dict[int, List[str]] = {}
 
         def ensure_room(room_id: int) -> None:
             neighbors.setdefault(room_id, [])
+            direction_map.setdefault(room_id, {})
 
         start_room = Room(
             id=0,
@@ -134,10 +147,15 @@ class DungeonBuilder:
                     room_id = existing_id
                 if room_id not in neighbors[current_id]:
                     neighbors[current_id].append(room_id)
+                    direction_map[current_id][room_id] = self._DIRECTION_NAMES[direction_idx]
                 if room_id not in neighbors:
                     neighbors[room_id] = []
+                    direction_map[room_id] = {}
                 if current_id not in neighbors[room_id]:
                     neighbors[room_id].append(current_id)
+                    # Opposite direction index
+                    opposite_idx = (direction_idx + 2) % len(self._DIRECTION_NAMES)
+                    direction_map[room_id][current_id] = self._DIRECTION_NAMES[opposite_idx]
                 current_id = room_id
                 current_position = next_position
             elif symbol == "+":
@@ -152,4 +170,8 @@ class DungeonBuilder:
             else:
                 continue
 
-        return Dungeon(rooms=rooms, adjacency={k: tuple(v) for k, v in neighbors.items()})
+        return Dungeon(
+            rooms=dict(rooms),
+            adjacency={k: tuple(v) for k, v in neighbors.items()},
+            directions={room_id: direction_map.get(room_id, {}) for room_id in rooms},
+        )

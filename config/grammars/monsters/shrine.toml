@@ -1,6 +1,6 @@
 [grammar]
 axiom = "W"
+iterations = 1
 
 [grammar.rules]
-W = "WH"
-H = "HW"
+W = "''(0.75), W(0.15), H(0.1)"

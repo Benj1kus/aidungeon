@@ -68,6 +68,16 @@ def main(argv: list[str] | None = None) -> int:
                 continue
             print(f"\nRoom {room.id} ({room.label})")
             print(room.description or "<no description>")
+            directions = dungeon.directions.get(room.id, {}) if hasattr(dungeon, "directions") else {}
+            adjacency = dungeon.adjacency.get(room.id, [])
+            if adjacency:
+                print("  Paths:")
+                for neighbor_id in adjacency:
+                    direction = directions.get(neighbor_id, "").upper()
+                    neighbor = dungeon.rooms.get(neighbor_id)
+                    label = neighbor.label if neighbor else f"Room {neighbor_id}"
+                    direction_note = f"{direction} " if direction else ""
+                    print(f"    - {direction_note}to {label} (#{neighbor_id})")
             if room.items:
                 print("  Items:")
                 for item in room.items:

@@ -1,6 +1,6 @@
 [grammar]
 axiom = "F"
+iterations = 1
 
 [grammar.rules]
-F = "FV"
-V = "VF"
+F = "''(0.7), F(0.2), V(0.1)"

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, MutableMapping, Optional
+from typing import Any, Dict, List, Mapping, MutableMapping, Optional, Sequence
 
 try:  # Python 3.11+
     import tomllib
@@ -21,7 +21,7 @@ class DungeonConfig:
     grammar_path: Path
     axiom: str
     iterations: int
-    rules: Mapping[str, str]
+    rules: Mapping[str, Sequence["Rule"]]
     symbols: Mapping[str, SymbolConfig]
 
 
@@ -71,6 +71,12 @@ class Config:
     content: ContentConfig
 
 
+@dataclass(frozen=True)
+class Rule:
+    production: str
+    weight: float = 1.0
+
+
 def _ensure_symbol_config(symbols: MutableMapping[str, Any]) -> Dict[str, SymbolConfig]:
     parsed: Dict[str, SymbolConfig] = {}
     for key, value in symbols.items():
@@ -84,6 +90,106 @@ def _ensure_symbol_config(symbols: MutableMapping[str, Any]) -> Dict[str, Symbol
             tags = [str(tag) for tag in tags_raw]
         parsed[key] = SymbolConfig(label=label, tags=tags)
     return parsed
+
+
+def _parse_rule_options(symbol: str, entry: Any) -> List[Rule]:
+    rules: List[Rule] = []
+    if isinstance(entry, str):
+        value = entry.strip()
+        if not value:
+            raise ValueError(f"Empty production for symbol '{symbol}'.")
+        if "=" in value:
+            lhs, rhs = value.split("=", 1)
+            if lhs.strip() and lhs.strip() not in {symbol, f'"{symbol}"', f"'{symbol}'"}:
+                raise ValueError(f"Unexpected symbol '{lhs.strip()}' in rule for '{symbol}'.")
+            value = rhs.strip()
+        # Split comma-separated options while respecting nested delimiters by simple heuristic.
+        segments: List[str] = []
+        buffer = []
+        depth = 0
+        for char in value:
+            if char in "[(":
+                depth += 1
+            if char in "])" and depth > 0:
+                depth -= 1
+            if char == "," and depth == 0:
+                segment = "".join(buffer).strip()
+                if segment:
+                    segments.append(segment)
+                buffer = []
+            else:
+                buffer.append(char)
+        if buffer:
+            segment = "".join(buffer).strip()
+            if segment:
+                segments.append(segment)
+        if not segments:
+            segments.append(value)
+        for segment in segments:
+            segment = segment.strip()
+            if not segment:
+                continue
+            weight = 1.0
+            if segment.endswith(")"):
+                # look for trailing "(weight)"
+                idx = segment.rfind("(")
+                if idx != -1:
+                    maybe_weight = segment[idx + 1 : -1].strip()
+                    production_candidate = segment[:idx].strip()
+                    if maybe_weight:
+                        try:
+                            weight = float(maybe_weight)
+                            segment = production_candidate
+                        except ValueError:
+                            pass
+            if not segment:
+                raise ValueError(f"Empty production for symbol '{symbol}'.")
+            rules.append(Rule(production=segment, weight=weight))
+        return rules
+    if isinstance(entry, Mapping):
+        value = str(entry.get("value", "")).strip()
+        if not value:
+            raise ValueError(f"Missing 'value' for symbol '{symbol}'.")
+        weight = float(entry.get("weight", 1.0))
+        if weight <= 0:
+            raise ValueError(f"Weight must be positive for symbol '{symbol}'.")
+        rules.append(Rule(production=value, weight=weight))
+        return rules
+    if isinstance(entry, list):
+        for option in entry:
+            rules.extend(_parse_rule_options(symbol, option))
+        return rules
+    raise ValueError(f"Unsupported rule format for symbol '{symbol}'.")
+
+
+def _parse_rules_block(rules_raw: Mapping[str, Any]) -> Dict[str, Sequence[Rule]]:
+    parsed: Dict[str, Sequence[Rule]] = {}
+    for symbol, entry in rules_raw.items():
+        options = _parse_rule_options(symbol, entry)
+        if not options:
+            raise ValueError(f"No productions defined for symbol '{symbol}'.")
+        parsed[str(symbol)] = tuple(options)
+    return parsed
+
+
+def parse_grammar_file(path: Path) -> tuple[str, Dict[str, Sequence[Rule]], int]:
+    if not path.exists():
+        raise FileNotFoundError(f"Grammar file not found: {path}")
+    with path.open("rb") as handle:
+        data = tomllib.load(handle)
+    grammar_raw = data.get("grammar")
+    if not isinstance(grammar_raw, Mapping):
+        raise ValueError(f"Grammar file must contain [grammar] section: {path}")
+    axiom = str(grammar_raw.get("axiom", "")).strip()
+    if not axiom:
+        raise ValueError(f"Grammar file missing axiom: {path}")
+    rules_block = grammar_raw.get("rules")
+    if not isinstance(rules_block, Mapping):
+        raise ValueError(f"Grammar file missing [grammar.rules] section: {path}")
+    rules = _parse_rules_block(rules_block)
+    iterations = int(grammar_raw.get("iterations", 1))
+    iterations = max(1, iterations)
+    return axiom, rules, iterations
 
 
 def load_config(path: str | Path) -> Config:
@@ -103,28 +209,19 @@ def load_config(path: str | Path) -> Config:
     grammar_path = Path(grammar_file)
     if not grammar_path.is_absolute():
         grammar_path = (config_path.parent / grammar_path).resolve()
-    if not grammar_path.exists():
-        raise FileNotFoundError(f"Grammar file not found: {grammar_path}")
-    with grammar_path.open("rb") as grammar_handle:
-        grammar_raw = tomllib.load(grammar_handle)
-    grammar_section = grammar_raw.get("grammar")
-    if not isinstance(grammar_section, Mapping):
-        raise ValueError("Grammar file must contain a [grammar] table.")
-    axiom = str(grammar_section.get("axiom", "")).strip()
-    if not axiom:
-        raise ValueError("Grammar file missing 'axiom' entry.")
-    rules_raw = grammar_section.get("rules", {})
-    if not isinstance(rules_raw, Mapping) or not rules_raw:
-        raise ValueError("Grammar file missing [grammar.rules] table.")
+    axiom, rules, _ = parse_grammar_file(grammar_path)
     symbols = dungeon_raw.get("symbols", {})
     if not isinstance(symbols, MutableMapping) or not symbols:
         raise ValueError("No symbol definitions found under [dungeon.symbols].")
     iterations = int(dungeon_raw.get("iterations", 1))
+    axiom_override = dungeon_raw.get("axiom")
+    if isinstance(axiom_override, str) and axiom_override.strip():
+        axiom = axiom_override.strip()
     dungeon_config = DungeonConfig(
         grammar_path=grammar_path,
         axiom=axiom,
         iterations=iterations,
-        rules={str(k): str(v) for k, v in rules_raw.items()},
+        rules=rules,
         symbols=_ensure_symbol_config(symbols),
     )
 

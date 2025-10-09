@@ -1,6 +1,6 @@
 [grammar]
-axiom = "BC"
+axiom = "B"
+iterations = 1
 
 [grammar.rules]
-B = "BC"
-C = "CB"
+B = "''(0.7), B(0.2), C(0.1)"

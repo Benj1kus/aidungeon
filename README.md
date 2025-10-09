@@ -6,7 +6,7 @@ This project sketches a lightweight, offline-friendly workflow for generating du
 - Expandable L-system grammar for branching dungeon graphs.
 - Configurable mapping from grammar symbols to gameplay concepts.
 - Prompt-driven narrative generation powered by an Ollama-compatible endpoint (local or remote).
-- Per-room grammars for loot and monsters, each described on demand by the same narrator pipeline.
+- Per-room grammars for loot and monsters, each described on demand by the same narrator pipeline, using weighted stochastic rules for extra variety.
 - Simple CLI to inspect the generated dungeon as JSON or a quick ASCII overview.
 
 ## Quick Start
@@ -28,11 +28,23 @@ If Ollama is unavailable, the CLI falls back to placeholder text so you can stil
   ```bash
   aidungeon-web --config config/default_config.toml --host 127.0.0.1 --port 8000
   ```
-- Open `http://127.0.0.1:8000` to explore the dungeon. Click room cards to move between connections or regenerate an entirely new layout using the button in the header.
+- Open `http://127.0.0.1:8000` to explore the dungeon. Click room cards or use `W/A/S/D` to move between connections, and regenerate an entirely new layout using the button in the header.
 
 ## Configuration
 The configuration file governs both the grammar expansion and the narrative prompts. See `config/default_config.toml` for a documented example.
 - Room layout grammars live under `config/grammars`, while per-room loot and monster grammars live under their respective `items/` and `monsters/` subdirectories. Update `config/prompts/default_prompts.toml` to change how rooms, items, and monsters are described.
+- Grammar files can define weighted rules with TOML arrays of tables. Example:
+  ```toml
+  [grammar]
+  axiom = "F"
+
+  [[grammar.rules.F]]
+  value = "F[+K]F[-M]F"
+  weight = 3
+
+  [[grammar.rules.F]]
+  value = "FF"
+  ```
 
 ## Development
 - Run the CLI with `python -m aidungeon.main --config config/default_config.toml`.
