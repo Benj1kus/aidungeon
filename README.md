@@ -22,10 +22,17 @@ This project sketches a lightweight, offline-friendly workflow for generating du
    cd aidungeon-lsystem
    ```
 2. **Create and activate a virtual environment**
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate  # Windows: .venv\Scripts\activate
-   ```
+   - macOS/Linux:
+     ```bash
+     python3 -m venv .venv
+     source .venv/bin/activate
+     ```
+   - Windows (PowerShell):
+     ```powershell
+     py -3 -m venv .venv
+     .\.venv\Scripts\Activate.ps1
+     ```
+     > If script execution is disabled, run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned` once before activating.
 3. **Install the package in editable mode**
    ```bash
    pip install --upgrade pip
