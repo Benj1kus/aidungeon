@@ -4,6 +4,7 @@ from .config import load_config
 from .content import ContentGenerator
 from .dungeon import Dungeon, DungeonBuilder, Entity
 from .lsystem import LSystem
+from .main import build_dungeon
 from .narrative import NarrativeGenerator, OllamaConfig
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     "NarrativeGenerator",
     "OllamaConfig",
     "load_config",
+    "build_dungeon",
 ]

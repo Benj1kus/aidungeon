@@ -2,7 +2,9 @@ README.md
 pyproject.toml
 src/aidungeon/__init__.py
 src/aidungeon/config.py
+src/aidungeon/content.py
 src/aidungeon/dungeon.py
+src/aidungeon/evaluation.py
 src/aidungeon/lsystem.py
 src/aidungeon/main.py
 src/aidungeon/narrative.py

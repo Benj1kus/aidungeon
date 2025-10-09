@@ -18,7 +18,7 @@ This project sketches a lightweight, offline-friendly workflow for generating du
 3. Adjust the configuration at `config/default_config.toml` or provide your own TOML file. The default points to a hosted Ollama-compatible endpoint at `https://341f48ced197.ngrok-free.app/v1/completions`, targeting the faster `deepseek-r1:1.5b` model with a 120 s request timeout; swap in your own URL/model or tweak `timeout` if needed. The L-system grammar itself lives in `config/grammars/classic.toml` and is referenced by name in the config, while narrator prompts and fallbacks live in `config/prompts/default_prompts.toml`. Each unique symbol prompts the narrator once (responses are cached after stripping any `<think>...</think>` metadata), so performance scales with the variety of room types rather than total rooms.
 4. Generate a dungeon and descriptions:
    ```bash
-   aidungeon --config config/default_config.toml
+   aidungeon --config config/default_config.toml --candidates 10
    ```
 
 If Ollama is unavailable, the CLI falls back to placeholder text so you can still iterate on the grammar design.
@@ -33,6 +33,7 @@ If Ollama is unavailable, the CLI falls back to placeholder text so you can stil
 ## Configuration
 The configuration file governs both the grammar expansion and the narrative prompts. See `config/default_config.toml` for a documented example.
 - Room layout grammars live under `config/grammars`, while per-room loot and monster grammars live under their respective `items/` and `monsters/` subdirectories. Update `config/prompts/default_prompts.toml` to change how rooms, items, and monsters are described.
+- Automatic scoring samples multiple dungeons (default 10) and keeps the most "enjoyable" layout based on heuristic weights in `config/default_config.toml` (`[evaluation]` section). Adjust weights for `room_diversity`, `branching_factor`, `loot_presence`, `monster_presence`, `dead_end_penalty`, and `room_count` to bias the selector.
 - Grammar files can define weighted rules with TOML arrays of tables. Example:
   ```toml
   [grammar]

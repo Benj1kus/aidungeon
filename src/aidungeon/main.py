@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 from pathlib import Path
 
 from .config import load_config
 from .content import ContentGenerator
 from .dungeon import DungeonBuilder
+from .evaluation import score_dungeon
 from .lsystem import LSystem
 from .narrative import NarrativeGenerator
 
@@ -27,18 +29,57 @@ def _render_ascii(dungeon) -> str:
     return "\n".join(lines)
 
 
-def build_dungeon(config_path: Path, iterations_override: int | None = None):
-    config = load_config(config_path)
+def _generate_candidate(config, iterations_override: int | None, seed: int, describe: bool = True):
     iterations = iterations_override if iterations_override is not None else config.dungeon.iterations
-    lsystem = LSystem(config.dungeon.axiom, config.dungeon.rules)
+    lsystem = LSystem(config.dungeon.axiom, config.dungeon.rules, seed=seed)
     expanded = lsystem.expand(iterations)
     builder = DungeonBuilder()
     dungeon = builder.build(expanded, config.dungeon.symbols)
-    content_generator = ContentGenerator(config.content, config.ollama, config.narrative)
+    content_generator = ContentGenerator(
+        config.content,
+        config.ollama,
+        config.narrative,
+        base_seed=seed,
+        enable_descriptions=describe,
+    )
     dungeon = content_generator.enrich(dungeon)
-    narrator = NarrativeGenerator(config.ollama, config.narrative)
-    dungeon = narrator.annotate(dungeon)
     return dungeon
+
+
+def _select_best_dungeon(config, iterations_override: int | None, candidate_count: int, rng: random.Random):
+    best_dungeon = None
+    best_score = float("-inf")
+    best_metrics = None
+    best_seed = None
+
+    for _ in range(max(candidate_count, 1)):
+        seed = rng.getrandbits(32)
+        candidate = _generate_candidate(config, iterations_override, seed, describe=False)
+        score, metrics = score_dungeon(candidate, config.evaluation)
+        if score > best_score:
+            best_score = score
+            best_dungeon = candidate
+            best_metrics = metrics
+            best_seed = seed
+
+    if best_dungeon is None:
+        raise RuntimeError("Failed to generate any dungeon candidates.")
+
+    return best_dungeon, best_seed, best_score, best_metrics
+
+
+def build_dungeon(
+    config_path: Path,
+    iterations_override: int | None = None,
+    candidate_count: int | None = None,
+):
+    config = load_config(config_path)
+    effective_candidates = candidate_count if candidate_count is not None else config.evaluation.candidate_count
+    rng = random.Random()
+    _, best_seed, _, _ = _select_best_dungeon(config, iterations_override, effective_candidates, rng)
+    described = _generate_candidate(config, iterations_override, best_seed, describe=True)
+    narrator = NarrativeGenerator(config.ollama, config.narrative)
+    return narrator.annotate(described)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -56,11 +97,39 @@ def main(argv: list[str] | None = None) -> int:
         default="json",
         help="Choose the output format.",
     )
+    parser.add_argument(
+        "--candidates",
+        type=int,
+        default=None,
+        help="Number of dungeon candidates to sample before picking the best.",
+    )
     args = parser.parse_args(argv)
 
-    dungeon = build_dungeon(args.config, args.iterations)
+    config = load_config(args.config)
+    candidate_count = args.candidates if args.candidates is not None else config.evaluation.candidate_count
+    rng = random.Random()
+
+    _, best_seed, best_score, best_metrics = _select_best_dungeon(config, args.iterations, candidate_count, rng)
+    best_dungeon = _generate_candidate(config, args.iterations, best_seed, describe=True)
+    narrator = NarrativeGenerator(config.ollama, config.narrative)
+    dungeon = narrator.annotate(best_dungeon)
+
     if args.format == "json":
-        print(json.dumps(dungeon.to_dict(), indent=2))
+        payload = dungeon.to_dict()
+        if best_metrics is not None:
+            payload.setdefault("evaluation", {})
+            payload["evaluation"].update(
+                {
+                    "score": best_score,
+                    "room_diversity": best_metrics.room_diversity,
+                    "branching_factor": best_metrics.branching_factor,
+                    "loot_presence": best_metrics.loot_presence,
+                    "monster_presence": best_metrics.monster_presence,
+                    "dead_end_ratio": best_metrics.dead_end_ratio,
+                    "room_count": best_metrics.raw_room_count,
+                }
+            )
+        print(json.dumps(payload, indent=2))
     else:
         print(_render_ascii(dungeon))
         for room in sorted(dungeon.rooms.values(), key=lambda r: r.id):

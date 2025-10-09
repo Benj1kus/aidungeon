@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 from pathlib import Path
 import re
-from typing import Dict, Sequence, Tuple
+from typing import Dict, Optional, Sequence, Tuple
 
 from .config import (
     ContentConfig,
@@ -12,6 +12,7 @@ from .config import (
     OllamaConfig,
     SymbolConfig,
     parse_grammar_file,
+    Rule,
 )
 from .dungeon import Dungeon, Entity, Room
 from .lsystem import LSystem
@@ -19,9 +20,17 @@ from .narrative import OllamaClient, OllamaError
 
 
 class ContentGenerator:
-    def __init__(self, content: ContentConfig, ollama: OllamaConfig, narrative: NarrativeConfig) -> None:
+    def __init__(
+        self,
+        content: ContentConfig,
+        ollama: OllamaConfig,
+        narrative: NarrativeConfig,
+        base_seed: int = 0,
+        enable_descriptions: bool = True,
+    ) -> None:
         self._content = content
-        self._client = OllamaClient(ollama)
+        self._enable_descriptions = enable_descriptions
+        self._client: Optional[OllamaClient] = OllamaClient(ollama) if enable_descriptions else None
         self._item_prompt = ollama.item_prompt
         self._monster_prompt = ollama.monster_prompt
         self._global_cues = narrative.global_cues
@@ -29,7 +38,8 @@ class ContentGenerator:
         self._monster_fallback = (
             narrative.monster_fallback or "A {entity_label} exuding {entity_tags} menace stalks the edges of the room."
         )
-        self._grammar_cache: Dict[Path, Tuple[str, Dict[str, Sequence], int]] = {}
+        self._base_seed = base_seed
+        self._grammar_cache: Dict[Path, Tuple[str, Dict[str, Sequence[Rule]], int]] = {}
         self._description_cache: Dict[tuple[str, str, int], str] = {}
         self._think_pattern = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
 
@@ -79,7 +89,7 @@ class ContentGenerator:
             cache_entry = parse_grammar_file(grammar_path)
             self._grammar_cache[grammar_path] = cache_entry
         axiom, rules, iterations = cache_entry
-        seed = hash((grammar_path, room_id, room_symbol)) & 0xFFFFFFFF
+        seed = hash((self._base_seed, grammar_path, room_id, room_symbol)) & 0xFFFFFFFF
         lsystem = LSystem(axiom=axiom, rules=rules, seed=seed)
         return lsystem.expand(iterations)
 
@@ -99,10 +109,12 @@ class ContentGenerator:
             entity_symbol=symbol,
             entity_tags=tags_text,
         )
-        try:
-            description = self._client.generate(prompt=prompt.strip(), system=prompt_config.system.strip())
-        except OllamaError:
-            description = ""
+        description = ""
+        if self._enable_descriptions and self._client is not None:
+            try:
+                description = self._client.generate(prompt=prompt.strip(), system=prompt_config.system.strip())
+            except OllamaError:
+                description = ""
         if not description:
             description = fallback_template.format(
                 global_cues=self._global_cues,

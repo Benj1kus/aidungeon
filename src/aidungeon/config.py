@@ -69,6 +69,7 @@ class Config:
     ollama: OllamaConfig
     narrative: NarrativeConfig
     content: ContentConfig
+    evaluation: "EvaluationConfig"
 
 
 @dataclass(frozen=True)
@@ -331,4 +332,34 @@ def load_config(path: str | Path) -> Config:
     monsters_group = parse_content_group("monsters", content_raw.get("monsters"))
     content_config = ContentConfig(items=items_group, monsters=monsters_group)
 
-    return Config(dungeon=dungeon_config, ollama=ollama_config, narrative=narrative, content=content_config)
+    evaluation_raw = raw.get("evaluation", {})
+    if evaluation_raw is None:
+        evaluation_raw = {}
+    if not isinstance(evaluation_raw, Mapping):
+        raise ValueError("[evaluation] must be a table if provided.")
+    candidate_count = int(evaluation_raw.get("candidate_count", 10))
+    target_room_count = int(evaluation_raw.get("target_room_count", 30))
+    weights_raw = evaluation_raw.get("weights", {})
+    if weights_raw is None:
+        weights_raw = {}
+    if not isinstance(weights_raw, Mapping):
+        raise ValueError("[evaluation.weights] must be a table if provided.")
+    weights = {str(key): float(value) for key, value in weights_raw.items()}
+    evaluation_config = EvaluationConfig(
+        candidate_count=candidate_count,
+        target_room_count=max(1, target_room_count),
+        weights=weights,
+    )
+
+    return Config(
+        dungeon=dungeon_config,
+        ollama=ollama_config,
+        narrative=narrative,
+        content=content_config,
+        evaluation=evaluation_config,
+    )
+@dataclass(frozen=True)
+class EvaluationConfig:
+    candidate_count: int
+    target_room_count: int
+    weights: Mapping[str, float]
