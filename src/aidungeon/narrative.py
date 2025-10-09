@@ -109,9 +109,9 @@ class OllamaClient:
 class NarrativeGenerator:
     def __init__(self, ollama: OllamaConfig, narrative: NarrativeConfig) -> None:
         self._client = OllamaClient(ollama)
-        self._template = ollama.prompt.template
-        self._system_prompt = ollama.prompt.system
-        self._fallback = narrative.fallback
+        self._template = ollama.room_prompt.template
+        self._system_prompt = ollama.room_prompt.system
+        self._room_fallback = narrative.room_fallback
         self._global_cues = narrative.global_cues
         self._cache: Dict[str, str] = {}
         self._think_pattern = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
@@ -138,7 +138,7 @@ class NarrativeGenerator:
             room_id=room.id,
             symbol=room.symbol,
             label=room.label,
-            tags=", ".join(room.tags),
+            tags=" ".join(room.tags[:4]),
             global_cues=self._global_cues,
             path_summary=path_summary,
         )
@@ -147,7 +147,7 @@ class NarrativeGenerator:
         except OllamaError:
             output = ""
         if not output:
-            fallback = self._fallback or "An indescribable place."
+            fallback = self._room_fallback or "An indescribable place."
             output = fallback.format(
                 room_id=room.id,
                 symbol=room.symbol,
@@ -162,4 +162,12 @@ class NarrativeGenerator:
 
     def _clean_response(self, text: str) -> str:
         cleaned = self._think_pattern.sub("", text)
-        return cleaned.strip()
+        cleaned = " ".join(cleaned.split())
+        if not cleaned:
+            return ""
+        sentences = re.split(r"(?<=[.!?])\s+", cleaned)
+        sentences = [s.strip() for s in sentences if s.strip()]
+        if not sentences:
+            return cleaned
+        limited = sentences[:3]
+        return " ".join(limited)

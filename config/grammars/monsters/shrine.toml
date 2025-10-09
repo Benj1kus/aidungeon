@@ -1,0 +1,6 @@
+[grammar]
+axiom = "W"
+
+[grammar.rules]
+W = "WH"
+H = "HW"

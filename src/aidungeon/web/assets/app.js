@@ -10,11 +10,38 @@
     roomDescription: document.querySelector("[data-room-description]"),
     roomTags: document.querySelector("[data-room-tags]"),
     connections: document.querySelector("[data-connections]"),
+    items: document.querySelector("[data-items]"),
+    monsters: document.querySelector("[data-monsters]"),
     breadcrumbs: document.querySelector("[data-breadcrumbs]"),
     resetButton: document.querySelector("[data-reset]"),
     canvas: document.querySelector("[data-map]"),
     statusDistance: document.querySelector("[data-status-distance]"),
     statusRooms: document.querySelector("[data-status-rooms]"),
+  };
+
+  const renderEntityList = (target, entities, emptyMessage) => {
+    if (!target) return;
+    target.innerHTML = "";
+    if (!entities || !entities.length) {
+      const li = document.createElement("li");
+      li.className = "entity-empty";
+      li.textContent = emptyMessage;
+      target.appendChild(li);
+      return;
+    }
+    entities.forEach((entity) => {
+      const li = document.createElement("li");
+      const title = document.createElement("span");
+      title.className = "entity-title";
+      const quantity = entity.quantity && entity.quantity > 1 ? ` (x${entity.quantity})` : "";
+      title.textContent = `${entity.label}${quantity}`;
+      const desc = document.createElement("span");
+      desc.className = "entity-desc";
+      desc.textContent = entity.description || "No description.";
+      li.appendChild(title);
+      li.appendChild(desc);
+      target.appendChild(li);
+    });
   };
 
   const fetchDungeon = async (opts = {}) => {
@@ -44,6 +71,9 @@
       });
     }
 
+    renderEntityList(elements.items, room.items, "No items discovered.");
+    renderEntityList(elements.monsters, room.monsters, "No monsters detected.");
+
     elements.connections.innerHTML = "";
     const neighbors = state.dungeon.adjacency[room.id] || [];
     neighbors.forEach((neighborId) => {
@@ -66,7 +96,7 @@
   const renderBreadcrumbs = () => {
     if (!state.dungeon) return;
     const room = state.dungeon.rooms[state.currentRoom];
-      const trail = room.trail || [];
+    const trail = room.trail || [];
     elements.breadcrumbs.textContent = `Path: start${trail.length ? " → " + trail.join(" → ") : ""}`;
     elements.statusDistance.textContent = `Steps: ${trail.length}`;
   };
@@ -134,12 +164,26 @@
     const rooms = {};
     Object.entries(raw.rooms || {}).forEach(([id, room]) => {
       const numericId = Number(id);
+      const items = Array.isArray(room.items) ? room.items : [];
+      const monsters = Array.isArray(room.monsters) ? room.monsters : [];
       rooms[numericId] = {
         ...room,
         id: numericId,
         position: room.position || [0, 0],
         tags: room.tags || [],
         trail: room.trail || [],
+        items: items.map((entity) => ({
+          ...entity,
+          tags: entity.tags || [],
+          description: entity.description || "",
+          quantity: Number(entity.quantity) || 1,
+        })),
+        monsters: monsters.map((entity) => ({
+          ...entity,
+          tags: entity.tags || [],
+          description: entity.description || "",
+          quantity: Number(entity.quantity) || 1,
+        })),
       };
     });
     const adjacency = {};

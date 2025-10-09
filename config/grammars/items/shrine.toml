@@ -1,0 +1,7 @@
+[grammar]
+axiom = "GO"
+
+[grammar.rules]
+G = "GR"
+O = "OO"
+R = "RG"

@@ -6,6 +6,7 @@ This project sketches a lightweight, offline-friendly workflow for generating du
 - Expandable L-system grammar for branching dungeon graphs.
 - Configurable mapping from grammar symbols to gameplay concepts.
 - Prompt-driven narrative generation powered by an Ollama-compatible endpoint (local or remote).
+- Per-room grammars for loot and monsters, each described on demand by the same narrator pipeline.
 - Simple CLI to inspect the generated dungeon as JSON or a quick ASCII overview.
 
 ## Quick Start
@@ -31,6 +32,7 @@ If Ollama is unavailable, the CLI falls back to placeholder text so you can stil
 
 ## Configuration
 The configuration file governs both the grammar expansion and the narrative prompts. See `config/default_config.toml` for a documented example.
+- Room layout grammars live under `config/grammars`, while per-room loot and monster grammars live under their respective `items/` and `monsters/` subdirectories. Update `config/prompts/default_prompts.toml` to change how rooms, items, and monsters are described.
 
 ## Development
 - Run the CLI with `python -m aidungeon.main --config config/default_config.toml`.

@@ -1,0 +1,6 @@
+[grammar]
+axiom = "F"
+
+[grammar.rules]
+F = "FV"
+V = "VF"

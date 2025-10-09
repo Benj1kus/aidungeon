@@ -1,11 +1,20 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List, Mapping, Sequence, Tuple
 
 from .config import SymbolConfig
 
 Vec2 = Tuple[int, int]
+
+
+@dataclass
+class Entity:
+    symbol: str
+    label: str
+    tags: Sequence[str]
+    description: str = ""
+    quantity: int = 1
 
 
 @dataclass
@@ -17,6 +26,8 @@ class Room:
     position: Vec2
     trail: Sequence[str]
     description: str = ""
+    items: Sequence[Entity] = field(default_factory=tuple)
+    monsters: Sequence[Entity] = field(default_factory=tuple)
 
 
 @dataclass
@@ -34,6 +45,26 @@ class Dungeon:
                     "position": list(room.position),
                     "trail": list(room.trail),
                     "description": room.description,
+                    "items": [
+                        {
+                            "symbol": item.symbol,
+                            "label": item.label,
+                            "tags": list(item.tags),
+                            "description": item.description,
+                            "quantity": item.quantity,
+                        }
+                        for item in room.items
+                    ],
+                    "monsters": [
+                        {
+                            "symbol": monster.symbol,
+                            "label": monster.label,
+                            "tags": list(monster.tags),
+                            "description": monster.description,
+                            "quantity": monster.quantity,
+                        }
+                        for monster in room.monsters
+                    ],
                 }
                 for room_id, room in self.rooms.items()
             },
@@ -62,6 +93,8 @@ class DungeonBuilder:
             position=(0, 0),
             trail=[],
             description="",
+            items=(),
+            monsters=(),
         )
         rooms[start_room.id] = start_room
         trails[start_room.id] = []

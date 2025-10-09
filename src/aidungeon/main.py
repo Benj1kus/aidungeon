@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from .config import load_config
+from .content import ContentGenerator
 from .dungeon import DungeonBuilder
 from .lsystem import LSystem
 from .narrative import NarrativeGenerator
@@ -33,6 +34,8 @@ def build_dungeon(config_path: Path, iterations_override: int | None = None):
     expanded = lsystem.expand(iterations)
     builder = DungeonBuilder()
     dungeon = builder.build(expanded, config.dungeon.symbols)
+    content_generator = ContentGenerator(config.content, config.ollama, config.narrative)
+    dungeon = content_generator.enrich(dungeon)
     narrator = NarrativeGenerator(config.ollama, config.narrative)
     dungeon = narrator.annotate(dungeon)
     return dungeon
@@ -65,6 +68,16 @@ def main(argv: list[str] | None = None) -> int:
                 continue
             print(f"\nRoom {room.id} ({room.label})")
             print(room.description or "<no description>")
+            if room.items:
+                print("  Items:")
+                for item in room.items:
+                    qty_suffix = f" (x{item.quantity})" if item.quantity > 1 else ""
+                    print(f"    - {item.label}{qty_suffix}: {item.description or '<no description>'}")
+            if room.monsters:
+                print("  Monsters:")
+                for monster in room.monsters:
+                    qty_suffix = f" (x{monster.quantity})" if monster.quantity > 1 else ""
+                    print(f"    - {monster.label}{qty_suffix}: {monster.description or '<no description>'}")
     return 0
 
 

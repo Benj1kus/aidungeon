@@ -1,0 +1,6 @@
+[grammar]
+axiom = "S"
+
+[grammar.rules]
+S = "SN"
+N = "NS"

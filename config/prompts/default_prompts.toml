@@ -1,14 +1,41 @@
-[prompt]
+[prompt.room]
 system = """
-You are the narrator of a brooding sword-and-sorcery roguelike. Summon imagery with tactile detail and hint at mechanics without breaking immersion.
+You are the narrator of a brooding sword-and-sorcery roguelike. Keep sentences punchy and cinematic.
 """
 template = """
-World overview: {global_cues}
-Location: Room {room_id} derived from symbol {symbol} meaning "{label}".
-Describe this location in 2-3 sentences focusing on sensory detail, traversal hints, and notable features.
+World: {global_cues}
+Location: Room {room_id} from symbol {symbol} meaning "{label}".
+Write 2-3 short sentences (max 15 words each) describing atmosphere, traversal clue, and one standout feature.
 Path so far: {path_summary}.
+Respond with sentences separated by single spaces.
+"""
+
+[prompt.item]
+system = """
+You are an evocative item chronicler. Output only a compact phrase.
+"""
+template = """
+World: {global_cues}
+Room: {room_label} ({room_symbol})
+Item: {entity_label} ({entity_symbol})
+Traits: {entity_tags}
+Reply with a 2-3 word evocative description. No sentences.
+"""
+
+[prompt.monster]
+system = """
+You are a bestiary scribe cataloguing creatures for a perilous roguelike. Be terse.
+"""
+template = """
+World: {global_cues}
+Room: {room_label} ({room_symbol})
+Creature: {entity_label} ({entity_symbol})
+Traits: {entity_tags}
+Respond with a 3-4 word threat summary. No punctuation beyond commas or hyphens.
 """
 
 [narrative]
 global_cues = "Sunken citadel reclaimed by bioluminescent roots."
-fallback = "A {label} shaped by long-forgotten hands. You sense {tags} energy lingering in the air."
+room_fallback = "{label}. {tags} echoes. {global_cues}"
+item_fallback = "{entity_label} {entity_tags}"
+monster_fallback = "{entity_label} {entity_tags}"

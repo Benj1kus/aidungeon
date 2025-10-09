@@ -38,13 +38,29 @@ class OllamaConfig:
     options: Mapping[str, Any]
     completion_path: str
     timeout: float
-    prompt: PromptConfig
+    room_prompt: PromptConfig
+    item_prompt: PromptConfig
+    monster_prompt: PromptConfig
 
 
 @dataclass(frozen=True)
 class NarrativeConfig:
     global_cues: str
-    fallback: str
+    room_fallback: str
+    item_fallback: str
+    monster_fallback: str
+
+
+@dataclass(frozen=True)
+class ContentGroupConfig:
+    symbols: Mapping[str, SymbolConfig]
+    grammars: Mapping[str, Path]
+
+
+@dataclass(frozen=True)
+class ContentConfig:
+    items: ContentGroupConfig
+    monsters: ContentGroupConfig
 
 
 @dataclass(frozen=True)
@@ -52,6 +68,7 @@ class Config:
     dungeon: DungeonConfig
     ollama: OllamaConfig
     narrative: NarrativeConfig
+    content: ContentConfig
 
 
 def _ensure_symbol_config(symbols: MutableMapping[str, Any]) -> Dict[str, SymbolConfig]:
@@ -135,10 +152,26 @@ def load_config(path: str | Path) -> Config:
         prompt_raw = raw.get("ollama", {}).get("prompt")
         if not isinstance(prompt_raw, Mapping):
             raise ValueError("Missing [ollama.prompt] section or prompt_file.")
-    prompt = PromptConfig(
-        system=str(prompt_raw.get("system", "")).strip(),
-        template=str(prompt_raw.get("template", "")).strip(),
-    )
+
+    def parse_prompt_section(mapping: Mapping[str, Any], key: str, fallback: Optional[Mapping[str, Any]] = None) -> PromptConfig:
+        section = mapping.get(key)
+        if section is None and fallback is not None:
+            section = fallback
+        if section is None and key == "room":
+            section = mapping
+        if section is None and {"system", "template"}.issubset(mapping.keys()):
+            section = mapping
+        if not isinstance(section, Mapping):
+            raise ValueError(f"Prompt section '{key}' missing.")
+        return PromptConfig(
+            system=str(section.get("system", "")).strip(),
+            template=str(section.get("template", "")).strip(),
+        )
+
+    room_prompt = parse_prompt_section(prompt_raw, "room")
+    item_prompt = parse_prompt_section(prompt_raw, "item", fallback=prompt_raw.get("room") if isinstance(prompt_raw.get("room"), Mapping) else None)
+    monster_prompt = parse_prompt_section(prompt_raw, "monster", fallback=prompt_raw.get("room") if isinstance(prompt_raw.get("room"), Mapping) else None)
+
     options_raw = raw.get("ollama", {}).get("options", {})
     if not isinstance(options_raw, Mapping):
         raise ValueError("[ollama.options] must be a table.")
@@ -152,7 +185,9 @@ def load_config(path: str | Path) -> Config:
         options=dict(options_raw),
         completion_path=completion_path,
         timeout=timeout,
-        prompt=prompt,
+        room_prompt=room_prompt,
+        item_prompt=item_prompt,
+        monster_prompt=monster_prompt,
     )
 
     narrative_raw = raw.get("narrative")
@@ -160,9 +195,43 @@ def load_config(path: str | Path) -> Config:
         narrative_raw = narrative_from_prompt
     if not isinstance(narrative_raw, Mapping):
         raise ValueError("Missing [narrative] section (either in config or prompt file).")
+    room_fallback = narrative_raw.get("room_fallback", narrative_raw.get("fallback", ""))
+    item_fallback = narrative_raw.get("item_fallback", narrative_raw.get("fallback", ""))
+    monster_fallback = narrative_raw.get("monster_fallback", narrative_raw.get("fallback", ""))
     narrative = NarrativeConfig(
         global_cues=str(narrative_raw.get("global_cues", "")).strip(),
-        fallback=str(narrative_raw.get("fallback", "")).strip(),
+        room_fallback=str(room_fallback).strip(),
+        item_fallback=str(item_fallback).strip(),
+        monster_fallback=str(monster_fallback).strip(),
     )
 
-    return Config(dungeon=dungeon_config, ollama=ollama_config, narrative=narrative)
+    content_raw = raw.get("content")
+    if not isinstance(content_raw, Mapping):
+        raise ValueError("Missing [content] section.")
+
+    def parse_content_group(name: str, group_raw: Any) -> ContentGroupConfig:
+        if not isinstance(group_raw, Mapping):
+            raise ValueError(f"[content.{name}] must be a table.")
+        symbols_raw = group_raw.get("symbols")
+        if not isinstance(symbols_raw, Mapping):
+            raise ValueError(f"[content.{name}.symbols] must be a table.")
+        symbols = _ensure_symbol_config(dict(symbols_raw))
+        grammars_raw = group_raw.get("grammars", {})
+        if not isinstance(grammars_raw, Mapping):
+            raise ValueError(f"[content.{name}.grammars] must be a table.")
+        grammars: Dict[str, Path] = {}
+        for room_symbol, path_value in grammars_raw.items():
+            path_str = str(path_value)
+            path = Path(path_str)
+            if not path.is_absolute():
+                path = (config_path.parent / path).resolve()
+            if not path.exists():
+                raise FileNotFoundError(f"Content grammar not found for {name} symbol '{room_symbol}': {path}")
+            grammars[str(room_symbol)] = path
+        return ContentGroupConfig(symbols=symbols, grammars=grammars)
+
+    items_group = parse_content_group("items", content_raw.get("items"))
+    monsters_group = parse_content_group("monsters", content_raw.get("monsters"))
+    content_config = ContentConfig(items=items_group, monsters=monsters_group)
+
+    return Config(dungeon=dungeon_config, ollama=ollama_config, narrative=narrative, content=content_config)

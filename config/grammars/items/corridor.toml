@@ -1,0 +1,7 @@
+[grammar]
+axiom = "TP"
+
+[grammar.rules]
+T = "TL"
+P = "P"
+L = "LP"

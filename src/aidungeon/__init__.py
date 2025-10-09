@@ -1,14 +1,17 @@
-"""Procedural dungeon generator driven by an L-system grammar."""
+"""Procedural dungeon generator driven by layered L-systems."""
 
-from .lsystem import LSystem
-from .dungeon import DungeonBuilder, Dungeon
-from .narrative import NarrativeGenerator, OllamaConfig
 from .config import load_config
+from .content import ContentGenerator
+from .dungeon import Dungeon, DungeonBuilder, Entity
+from .lsystem import LSystem
+from .narrative import NarrativeGenerator, OllamaConfig
 
 __all__ = [
-    "LSystem",
-    "DungeonBuilder",
+    "ContentGenerator",
     "Dungeon",
+    "DungeonBuilder",
+    "Entity",
+    "LSystem",
     "NarrativeGenerator",
     "OllamaConfig",
     "load_config",
