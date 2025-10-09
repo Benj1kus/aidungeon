@@ -1,0 +1,3 @@
+[console_scripts]
+aidungeon = aidungeon.main:main
+aidungeon-web = aidungeon.web.app:main

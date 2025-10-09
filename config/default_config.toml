@@ -12,21 +12,8 @@ endpoint = "https://341f48ced197.ngrok-free.app"
 completion_path = "/v1/completions"
 model = "deepseek-r1:1.5b"
 timeout = 120
+prompt_file = "prompts/default_prompts.toml"
 
 [ollama.options]
 temperature = 0.7
 top_p = 0.9
-
-[ollama.prompt]
-system = """
-You are the narrator of a moody sword-and-sorcery roguelike. Describe locations with a balance of atmosphere and gameplay hints.
-"""
-template = """
-Describe the location for room {room_id}. The room resulted from symbol {symbol} meaning "{label}".
-Provide 2-3 vivid sentences highlighting exploration hooks and sensory details. Incorporate the global cues: {global_cues}.
-The traversal path to reach this room is summarized as: {path_summary}.
-"""
-
-[narrative]
-global_cues = "Sunken citadel reclaimed by bioluminescent roots."
-fallback = "A {label} shaped by long-forgotten hands. You sense {tags} energy lingering in the air."

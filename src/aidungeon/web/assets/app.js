@@ -66,7 +66,7 @@
   const renderBreadcrumbs = () => {
     if (!state.dungeon) return;
     const room = state.dungeon.rooms[state.currentRoom];
-    const trail = room.trail || [];
+      const trail = room.trail || [];
     elements.breadcrumbs.textContent = `Path: start${trail.length ? " → " + trail.join(" → ") : ""}`;
     elements.statusDistance.textContent = `Steps: ${trail.length}`;
   };
@@ -130,10 +130,30 @@
     ctx.shadowBlur = 0;
   };
 
+  const normalizeDungeon = (raw) => {
+    const rooms = {};
+    Object.entries(raw.rooms || {}).forEach(([id, room]) => {
+      const numericId = Number(id);
+      rooms[numericId] = {
+        ...room,
+        id: numericId,
+        position: room.position || [0, 0],
+        tags: room.tags || [],
+        trail: room.trail || [],
+      };
+    });
+    const adjacency = {};
+    Object.entries(raw.adjacency || {}).forEach(([id, neighbors]) => {
+      adjacency[Number(id)] = (neighbors || []).map((value) => Number(value));
+    });
+    return { ...raw, rooms, adjacency };
+  };
+
   const loadDungeon = async (opts = {}) => {
     try {
       document.body.classList.add("loading");
-      state.dungeon = await fetchDungeon(opts);
+      const rawDungeon = await fetchDungeon(opts);
+      state.dungeon = normalizeDungeon(rawDungeon);
       state.currentRoom = 0;
       renderRoom();
       renderBreadcrumbs();

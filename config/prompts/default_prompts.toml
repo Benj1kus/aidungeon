@@ -1,0 +1,14 @@
+[prompt]
+system = """
+You are the narrator of a brooding sword-and-sorcery roguelike. Summon imagery with tactile detail and hint at mechanics without breaking immersion.
+"""
+template = """
+World overview: {global_cues}
+Location: Room {room_id} derived from symbol {symbol} meaning "{label}".
+Describe this location in 2-3 sentences focusing on sensory detail, traversal hints, and notable features.
+Path so far: {path_summary}.
+"""
+
+[narrative]
+global_cues = "Sunken citadel reclaimed by bioluminescent roots."
+fallback = "A {label} shaped by long-forgotten hands. You sense {tags} energy lingering in the air."

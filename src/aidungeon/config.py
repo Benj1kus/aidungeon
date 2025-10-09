@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, MutableMapping
+from typing import Any, Dict, List, Mapping, MutableMapping, Optional
 
 try:  # Python 3.11+
     import tomllib
@@ -114,9 +114,27 @@ def load_config(path: str | Path) -> Config:
     ollama_raw = raw.get("ollama")
     if not isinstance(ollama_raw, Mapping):
         raise ValueError("Missing [ollama] section.")
-    prompt_raw = raw.get("ollama", {}).get("prompt")
-    if not isinstance(prompt_raw, Mapping):
-        raise ValueError("Missing [ollama.prompt] section.")
+    prompt_file = ollama_raw.get("prompt_file")
+    prompt_raw: Optional[Mapping[str, Any]] = None
+    narrative_from_prompt: Optional[Mapping[str, Any]] = None
+    if isinstance(prompt_file, str) and prompt_file.strip():
+        prompt_path = Path(prompt_file)
+        if not prompt_path.is_absolute():
+            prompt_path = (config_path.parent / prompt_path).resolve()
+        if not prompt_path.exists():
+            raise FileNotFoundError(f"Prompt file not found: {prompt_path}")
+        with prompt_path.open("rb") as handle:
+            prompt_doc = tomllib.load(handle)
+        prompt_raw = prompt_doc.get("prompt")
+        if not isinstance(prompt_raw, Mapping):
+            raise ValueError("Prompt file missing [prompt] table.")
+        narrative_candidate = prompt_doc.get("narrative")
+        if isinstance(narrative_candidate, Mapping):
+            narrative_from_prompt = narrative_candidate
+    else:
+        prompt_raw = raw.get("ollama", {}).get("prompt")
+        if not isinstance(prompt_raw, Mapping):
+            raise ValueError("Missing [ollama.prompt] section or prompt_file.")
     prompt = PromptConfig(
         system=str(prompt_raw.get("system", "")).strip(),
         template=str(prompt_raw.get("template", "")).strip(),
@@ -137,9 +155,11 @@ def load_config(path: str | Path) -> Config:
         prompt=prompt,
     )
 
-    narrative_raw = raw.get("narrative", {})
+    narrative_raw = raw.get("narrative")
+    if narrative_raw is None and narrative_from_prompt is not None:
+        narrative_raw = narrative_from_prompt
     if not isinstance(narrative_raw, Mapping):
-        raise ValueError("Missing [narrative] section.")
+        raise ValueError("Missing [narrative] section (either in config or prompt file).")
     narrative = NarrativeConfig(
         global_cues=str(narrative_raw.get("global_cues", "")).strip(),
         fallback=str(narrative_raw.get("fallback", "")).strip(),

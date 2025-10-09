@@ -1,3 +1,13 @@
+Metadata-Version: 2.4
+Name: aidungeon-lsystem
+Version: 0.1.0
+Summary: Procedural storytelling prototype using L-systems for layout and Ollama for narration.
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: requests>=2.31.0
+Requires-Dist: fastapi>=0.110.0
+Requires-Dist: uvicorn>=0.23.0
+
 # AI Dungeon-Style Prototype
 
 This project sketches a lightweight, offline-friendly workflow for generating dungeon layouts with an L-system grammar and narrating each location with an [Ollama](https://ollama.ai) model.
@@ -14,7 +24,7 @@ This project sketches a lightweight, offline-friendly workflow for generating du
    ```bash
    pip install -e .
    ```
-3. Adjust the configuration at `config/default_config.toml` or provide your own TOML file. The default points to a hosted Ollama-compatible endpoint at `https://341f48ced197.ngrok-free.app/v1/completions`, targeting the faster `deepseek-r1:1.5b` model with a 120 s request timeout; swap in your own URL/model or tweak `timeout` if needed. The L-system grammar itself lives in `config/grammars/classic.toml` and is referenced by name in the config, while narrator prompts and fallbacks live in `config/prompts/default_prompts.toml`. Each unique symbol prompts the narrator once (responses are cached after stripping any `<think>...</think>` metadata), so performance scales with the variety of room types rather than total rooms.
+3. Adjust the configuration at `config/default_config.toml` or provide your own TOML file. The default points to a hosted Ollama-compatible endpoint at `https://341f48ced197.ngrok-free.app/v1/completions`, targeting the faster `deepseek-r1:1.5b` model with a 120 s request timeout; swap in your own URL/model or tweak `timeout` if needed. The L-system grammar itself lives in `config/grammars/classic.toml` and is referenced by name in the config, so you can swap grammars without touching code. Each unique symbol prompts the narrator once (responses are cached after stripping any `<think>...</think>` metadata), so performance scales with the variety of room types rather than total rooms.
 4. Generate a dungeon and descriptions:
    ```bash
    aidungeon --config config/default_config.toml
