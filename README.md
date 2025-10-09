@@ -22,7 +22,7 @@ This project sketches a lightweight, offline-friendly workflow for generating du
    cd aidungeon-lsystem
    ```
 2. **Create and activate a virtual environment**
-   - macOS/Linux:
+- macOS/Linux:
      ```bash
      python3 -m venv .venv
      source .venv/bin/activate
@@ -38,6 +38,7 @@ This project sketches a lightweight, offline-friendly workflow for generating du
    pip install --upgrade pip
    pip install -e .
    ```
+   > Windows + Python 3.10: install the TOML backport once (`pip install tomli`) before running the CLI.
 4. **Point the project at an Ollama endpoint**
    - The default configuration (`config/default_config.toml`) references a sample remote endpoint. Replace `ollama.endpoint` with your own server or `http://127.0.0.1:11434` if Ollama is running locally.
    - Update `ollama.model`, `ollama.options`, or prompt settings in `config/prompts/default_prompts.toml` to suit your lesson.
