@@ -175,7 +175,7 @@ def main(argv: list[str] | None = None) -> int:
 
                 if choice in {"1", "2", "3"} and int(choice) <= len(offers):
                     picked = offers[int(choice) - 1]
-                    print(f'You decided not to buy and just steal "{picked}"!!!')
+                    print(f'You are not worthy "{picked}"!!!')
                 else:
                     print("You leave the trader be.")
     return 0

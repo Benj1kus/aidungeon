@@ -20,7 +20,7 @@ World: {global_cues}
 Room: {room_label} ({room_symbol})
 Item: {entity_label} ({entity_symbol})
 Traits: {entity_tags}
-Reply with a 2-3 word evocative description. No sentences.
+Reply with a short, complete sentence (5–8 words) describing the item.
 """
 
 [prompt.monster]

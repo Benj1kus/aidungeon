@@ -4,31 +4,148 @@
   <meta charset="utf-8"/>
   <title>AI Dungeon Explorer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <link rel="preconnect" href="//fonts.gstatic.com" crossorigin>
+
+  <!-- Пиксельные шрифты (без файлов в репо) -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background:#0f1418; color:#e0f2f1; }
-    header, footer { padding: 12px 16px; background:#102a2a; position: sticky; top:0; z-index:10; }
-    main { display: grid; grid-template-columns: 360px 1fr; gap: 16px; padding: 16px; }
-    .panel { background: #0e1d1d; border-radius: 12px; padding: 12px; box-shadow: 0 0 0 1px rgba(77,182,172,.2) inset; }
-    h1,h2,h3 { margin: 8px 0; }
-    button { background:#4db6ac; color:#0b1212; border:0; padding:8px 10px; border-radius:8px; cursor:pointer; font-weight:600; }
-    button:hover { filter: brightness(1.1); }
-    .entities { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px; }
-    .entity-empty { opacity:.6; }
-    .entity-title { font-weight:600; display:block; }
-    .entity-desc  { opacity:.85; font-size:.95em; }
-    .chips span { display:inline-block; padding:3px 6px; border-radius:999px; background:#123; margin-right:6px; font-size:.85em; opacity:.9; }
-    .connections { display:flex; flex-direction:column; gap:8px; }
-    .bar { display:flex; gap:12px; align-items:center; }
-    canvas { width:100%; height:540px; background:#0b1212; border-radius:12px; }
-    .trade { margin-top: 12px; padding: 10px; border-radius: 10px; background: #122222; }
-    .trade h3 { margin: 0 0 8px 0; }
-    .trade .offers { display:flex; gap:8px; flex-wrap:wrap; }
-    .trade .offers button { background:#ffd54f; color:#2a1a00; }
-    .trade .result { margin-top:8px; color:#ffd54f; font-weight:700; min-height:1.2em; }
-    .muted { opacity:.7; }
-    .status { display:flex; gap:16px; align-items:center; }
-    .loading::before { content:""; position:fixed; inset:0; background:rgba(0,0,0,.25); z-index: 999; }
+    :root{
+      /* Майкро-палитра */
+      --bg-0:#0b0f10;        /* глубина шахты */
+      --bg-1:#12191b;        /* панели */
+      --bg-2:#182225;        /* акцент панелей */
+      --edge:#2a3a3d;        /* «каменный» кант */
+      --ui:#3c8527;          /* трава/зелёный UI */
+      --ui-2:#69b83b;        /* светлый зелёный */
+      --ui-amber:#ffd54f;    /* факел/золото */
+      --ink:#e7f7f2;         /* текст */
+      --ink-dim:#a5c7bf;     /* приглушённый текст */
+      --danger:#ef5350;      /* враги */
+      --loot:#ffd54f;        /* лут */
+    }
+
+    /* Базовая стилизация */
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:
+        linear-gradient(0deg, rgba(0,0,0,.25), rgba(0,0,0,.25)),
+        repeating-linear-gradient(0deg, var(--bg-0), var(--bg-0) 4px, #0a0d0e 4px, #0a0d0e 8px);
+      color:var(--ink);
+      /* пиксельный шрифт заголовков + читабельный моно-шрифт текста */
+      font-family:"VT323", ui-monospace, Menlo, Consolas, monospace;
+      letter-spacing:.2px;
+      image-rendering: pixelated;
+    }
+
+    /* Заголовки — грубый пиксельный */
+    h1,h2,h3,button,header,footer{
+      font-family:"Press Start 2P","VT323",monospace;
+      letter-spacing:0;
+    }
+
+    header, footer {
+      padding: 10px 14px;
+      background: var(--bg-2);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 4px solid var(--edge);
+      box-shadow: 0 0 0 2px #000 inset, 0 2px 0 0 var(--edge);
+    }
+
+    main{
+      display:grid;
+      grid-template-columns: 380px 1fr;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .panel{
+      background: var(--bg-1);
+      padding: 12px;
+      border-radius: 0; /* квадратный пиксельный стиль */
+      box-shadow:
+        0 0 0 3px #000 inset,
+        0 0 0 1px var(--edge) inset,
+        0 4px 0 0 #000;
+      border-image: repeating-linear-gradient(90deg, var(--edge), var(--edge) 4px, #000 4px, #000 8px) 1;
+    }
+
+    .bar{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+    .muted{color:var(--ink-dim)}
+
+    button{
+      background: linear-gradient(180deg, var(--ui-2), var(--ui));
+      color:#0b120e;
+      border:0;
+      padding:10px 12px;
+      font-size:12px;
+      cursor:pointer;
+      box-shadow:
+        0 0 0 3px #000 inset,
+        0 0 0 1px var(--edge) inset,
+        0 4px 0 0 #000;
+      transform: translateY(0);
+      transition: transform .05s ease;
+    }
+    button:hover{ filter:brightness(1.05) }
+    button:active{ transform: translateY(2px) }
+
+    .chips span{
+      display:inline-block;
+      padding:3px 6px;
+      background:#13251f;
+      border:1px solid var(--edge);
+      box-shadow: 0 2px 0 0 #000;
+      margin-right:6px;
+      font-size:16px;
+    }
+
+    .entities{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px }
+    .entity-title{ font-weight:700; color:var(--ink) }
+    .entity-desc{ color:var(--ink-dim) }
+    .entity-empty{ opacity:.7 }
+
+    .connections{ display:flex; flex-direction:column; gap:8px }
+
+    canvas{
+      width:100%;
+      height:560px;
+      background:#090d0e;
+      box-shadow:
+        0 0 0 3px #000 inset,
+        0 0 0 1px var(--edge) inset,
+        0 4px 0 0 #000;
+      image-rendering: pixelated; /* важный момент */
+    }
+
+    /* Торговец (Villager Trader Post) */
+    .trade{
+      margin-top: 12px;
+      padding: 10px;
+      background:#111c12;
+      border:1px solid var(--edge);
+      box-shadow: 0 2px 0 0 #000 inset;
+    }
+    .trade h3{ margin:0 0 8px 0 }
+    .trade .offers{ display:flex; gap:8px; flex-wrap:wrap }
+    .trade .offers button{
+      background: linear-gradient(180deg, var(--ui-amber), #d4a72d);
+      color:#2a1a00;
+    }
+    .trade .result{
+      margin-top:8px; color:var(--ui-amber); font-weight:700; min-height:1.2em
+    }
+
+    /* Статусы */
+    .status{ display:flex; gap:16px; align-items:center; font-size:14px }
+
+    /* Заголовки покрупнее, но пиксельные */
+    h1{ font-size:16px; }
+    h2{ font-size:14px; }
+    h3{ font-size:12px; }
+    p, li, button, .status, .chips span{ font-size:18px; } /* VT323 крупнее, чтобы читалось */
   </style>
 </head>
 <body>
