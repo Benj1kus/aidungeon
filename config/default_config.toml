@@ -65,3 +65,7 @@ loot_presence    = 0.6
 monster_presence = 0.35
 dead_end_penalty = -0.7
 room_count       = 0.3
+
+[content]
+items_dir = "content/items"
+monsters_dir = "content/monsters"
