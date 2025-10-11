@@ -44,7 +44,9 @@
       const desc = document.createElement("span");
       desc.className = "entity-desc";
       desc.textContent = entity.description || "No description.";
+      const spacer = document.createTextNode(" — ");
       li.appendChild(title);
+      li.appendChild(spacer);
       li.appendChild(desc);
       target.appendChild(li);
     });
