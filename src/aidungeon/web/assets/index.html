@@ -1,44 +1,79 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AI Dungeon Explorer</title>
-    <link rel="stylesheet" href="/assets/style.css" />
-  </head>
-  <body>
-    <header>
-      <h1>AI Dungeon Explorer</h1>
-      <button type="button" data-reset>Regenerate Dungeon</button>
-    </header>
-    <main>
-      <section class="panel">
-        <div class="room-label" data-room-label>Room</div>
-        <h2 class="room-name" data-room-name>Loading...</h2>
-        <p class="room-description" data-room-description></p>
-        <div class="room-tags" data-room-tags></div>
-        <div class="breadcrumbs" data-breadcrumbs></div>
-        <div class="room-section">
-          <h2>Items</h2>
-          <ul class="entity-list" data-items></ul>
-        </div>
-        <div class="room-section">
-          <h2>Monsters</h2>
-          <ul class="entity-list" data-monsters></ul>
-        </div>
-        <div class="connections">
-          <h2>Available Paths</h2>
-          <ul data-connections></ul>
-        </div>
-      </section>
-      <section class="panel map-panel">
-        <canvas data-map width="600" height="600"></canvas>
-      </section>
-    </main>
-    <div class="status-bar">
-      <span data-status-distance>Steps: 0</span>
-      <span data-status-rooms>Rooms: 0</span>
+<head>
+  <meta charset="utf-8"/>
+  <title>AI Dungeon Explorer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="preconnect" href="//fonts.gstatic.com" crossorigin>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background:#0f1418; color:#e0f2f1; }
+    header, footer { padding: 12px 16px; background:#102a2a; position: sticky; top:0; z-index:10; }
+    main { display: grid; grid-template-columns: 360px 1fr; gap: 16px; padding: 16px; }
+    .panel { background: #0e1d1d; border-radius: 12px; padding: 12px; box-shadow: 0 0 0 1px rgba(77,182,172,.2) inset; }
+    h1,h2,h3 { margin: 8px 0; }
+    button { background:#4db6ac; color:#0b1212; border:0; padding:8px 10px; border-radius:8px; cursor:pointer; font-weight:600; }
+    button:hover { filter: brightness(1.1); }
+    .entities { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px; }
+    .entity-empty { opacity:.6; }
+    .entity-title { font-weight:600; display:block; }
+    .entity-desc  { opacity:.85; font-size:.95em; }
+    .chips span { display:inline-block; padding:3px 6px; border-radius:999px; background:#123; margin-right:6px; font-size:.85em; opacity:.9; }
+    .connections { display:flex; flex-direction:column; gap:8px; }
+    .bar { display:flex; gap:12px; align-items:center; }
+    canvas { width:100%; height:540px; background:#0b1212; border-radius:12px; }
+    .trade { margin-top: 12px; padding: 10px; border-radius: 10px; background: #122222; }
+    .trade h3 { margin: 0 0 8px 0; }
+    .trade .offers { display:flex; gap:8px; flex-wrap:wrap; }
+    .trade .offers button { background:#ffd54f; color:#2a1a00; }
+    .trade .result { margin-top:8px; color:#ffd54f; font-weight:700; min-height:1.2em; }
+    .muted { opacity:.7; }
+    .status { display:flex; gap:16px; align-items:center; }
+    .loading::before { content:""; position:fixed; inset:0; background:rgba(0,0,0,.25); z-index: 999; }
+  </style>
+</head>
+<body>
+<header class="bar">
+  <h1 style="margin:0;">AI Dungeon Explorer</h1>
+  <button type="button" data-reset>Regenerate Dungeon</button>
+  <div class="status">
+    <span data-status-distance class="muted">Steps: 0</span>
+    <span data-status-rooms class="muted">Rooms: 0</span>
+  </div>
+</header>
+
+<main>
+  <section class="panel">
+    <h2 data-room-label>Room</h2>
+    <h3 data-room-name class="muted">Loading...</h3>
+    <p data-room-description class="muted">...</p>
+    <div class="chips" data-room-tags></div>
+
+    <div class="trade" data-trade hidden>
+      <h3>Villager Trader Post</h3>
+      <div class="offers" data-trade-offers></div>
+      <div class="result" data-trade-result></div>
     </div>
-    <script src="/assets/app.js" defer></script>
-  </body>
+
+    <h3>Items</h3>
+    <ul class="entities" data-items></ul>
+
+    <h3>Monsters</h3>
+    <ul class="entities" data-monsters></ul>
+
+    <h3>Available Paths</h3>
+    <div class="connections" data-connections></div>
+    <div class="muted" data-breadcrumbs>Path: start</div>
+  </section>
+
+  <section class="panel">
+    <canvas data-map></canvas>
+  </section>
+</main>
+
+<footer class="bar muted">
+  <span>&copy; 2025</span>
+</footer>
+
+<script src="/assets/app.js"></script>
+</body>
 </html>

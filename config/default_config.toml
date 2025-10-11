@@ -3,9 +3,10 @@ grammar_file = "grammars/classic.toml"
 iterations = 3
 
 [dungeon.symbols]
-F = { label = "Twisting corridor", tags = ["stone", "narrow", "torchlit"] }
-K = { label = "Key shrine", tags = ["mystic", "glowing", "runes"] }
-M = { label = "Beast lair", tags = ["musky", "clawed", "danger"] }
+F = { label = "Mineshaft corridor",  tags = ["cobblestone", "oak-supports", "torchlit"] }
+K = { label = "Enchantment shrine",  tags = ["arcane", "books", "glyphs"] }
+M = { label = "Spider lair",         tags = ["webs", "chitin", "danger"] }
+V = { label = "Villager trader post", tags = ["market", "lanterns", "barter"] }
 
 [ollama]
 endpoint = "https://341f48ced197.ngrok-free.app"
@@ -19,41 +20,48 @@ temperature = 0.7
 top_p = 0.9
 
 [content.items.symbols]
-T = { label = "Wall torch", tags = ["light", "sputtering", "soot"] }
-P = { label = "Dusty potion", tags = ["alchemical", "amber", "volatile"] }
-L = { label = "Tattered map scrap", tags = ["parchment", "cryptic", "weathered"] }
-G = { label = "Gilded key", tags = ["shimmering", "ancient", "sigil"] }
-O = { label = "Oracle crystal", tags = ["glowing", "whispering", "fragile"] }
-R = { label = "Ritual censer", tags = ["incense", "brazen", "warm"] }
-B = { label = "Bone totem", tags = ["carved", "ominous", "fetish"] }
-C = { label = "Chitinous plate", tags = ["organic", "jagged", "black"] }
+T = { label = "Torch",               tags = ["light", "oak", "flicker"] }
+P = { label = "Potion of Healing",   tags = ["potion", "red", "splash"] }
+L = { label = "Empty Map",           tags = ["paper", "cartography", "blank"] }
+G = { label = "Emerald",             tags = ["currency", "green", "shiny"] }
+O = { label = "Ender Pearl",         tags = ["teleport", "void", "fragile"] }
+R = { label = "Redstone Dust",       tags = ["circuit", "powder", "glowing"] }
+B = { label = "Bone",                tags = ["mob-drop", "white", "stack"] }
+C = { label = "Coal",                tags = ["fuel", "black", "lump"] }
 
 [content.items.grammars]
+# F/K/M — как раньше; для V используем «богатый» лут святилища.
 F = "grammars/items/corridor.toml"
 K = "grammars/items/shrine.toml"
 M = "grammars/items/lair.toml"
+V = "grammars/items/shrine.toml"
 
 [content.monsters.symbols]
-S = { label = "Sconce mimic", tags = ["lurking", "ambush", "camouflaged"] }
-W = { label = "Ward spirit", tags = ["spectral", "chanting", "protective"] }
-H = { label = "Husk acolyte", tags = ["zealous", "emaciated", "fanatic"] }
-V = { label = "Void crawler", tags = ["many-legged", "shadowed", "venomous"] }
-F = { label = "Fangmaw brute", tags = ["hulking", "predatory", "scarred"] }
-N = { label = "Nightraith", tags = ["wraithlike", "cold", "hunting"] }
+# Символы монстров остаются прежними (S,W,H,V,F,N), но лейблы под Minecraft:
+S = { label = "Skeleton",   tags = ["ranged", "bones", "ambush"] }
+W = { label = "Witch",      tags = ["potion", "cackle", "hex"] }
+H = { label = "Husk",       tags = ["desert", "zombie", "dry"] }
+V = { label = "Vindicator", tags = ["illager", "axe", "hostile"] }
+F = { label = "Cave Spider",tags = ["poison", "webs", "swift"] }
+N = { label = "Zombie",     tags = ["undead", "groan", "melee"] }
 
 [content.monsters.grammars]
+# F/K/M — как раньше; для V берём «сдержанную» частоту встреч как у святилища.
 F = "grammars/monsters/corridor.toml"
 K = "grammars/monsters/shrine.toml"
 M = "grammars/monsters/lair.toml"
+V = "grammars/monsters/shrine.toml"
 
 [evaluation]
 candidate_count = 10
 target_room_count = 30
 
 [evaluation.weights]
-room_diversity = 1.0
-branching_factor = 0.8
-loot_presence = 0.5
-monster_presence = 0.4
-dead_end_penalty = -0.6
-room_count = 0.3
+# Рекомендация под Майнкрафт-шахту: поощряем разнообразие комнат и разветвления,
+# умеренно ценим присутствие лута и монстров, штрафуем тупики.
+room_diversity   = 1.2
+branching_factor = 1.0
+loot_presence    = 0.6
+monster_presence = 0.35
+dead_end_penalty = -0.7
+room_count       = 0.3

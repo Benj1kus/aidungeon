@@ -3,4 +3,4 @@ axiom = "W"
 iterations = 1
 
 [grammar.rules]
-W = "''(0.75), W(0.15), H(0.1)"
+W = "''(0.70), W(0.20), H(0.10)"

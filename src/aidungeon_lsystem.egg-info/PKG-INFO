@@ -19,17 +19,49 @@ This project sketches a lightweight, offline-friendly workflow for generating du
 - Per-room grammars for loot and monsters, each described on demand by the same narrator pipeline, using weighted stochastic rules for extra variety.
 - Simple CLI to inspect the generated dungeon as JSON or a quick ASCII overview.
 
-## Quick Start
-1. Install Python 3.10+ (and `pip install tomli` if you are on 3.10).
-2. Create and activate a virtual environment, then install the package in editable mode:
+## Prerequisites
+- Python 3.10 or newer (3.11+ recommended).
+- `git` for cloning the repository.
+- Optional but strongly recommended: a local [Ollama](https://ollama.ai) installation or access to a compatible HTTP endpoint.
+- macOS/Linux shell or Windows PowerShell (the commands below are POSIX-flavoured; adapt paths as needed).
+
+## Installation
+1. **Clone the repository**
    ```bash
+   git clone https://github.com/<your-org>/aidungeon-lsystem.git
+   cd aidungeon-lsystem
+   ```
+2. **Create and activate a virtual environment**
+- macOS/Linux:
+     ```bash
+     python3 -m venv .venv
+     source .venv/bin/activate
+     ```
+   - Windows (PowerShell):
+     ```powershell
+     py -3 -m venv .venv
+     .\.venv\Scripts\Activate.ps1
+     ```
+     > If script execution is disabled, run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned` once before activating.
+3. **Install the package in editable mode**
+   ```bash
+   pip install --upgrade pip
    pip install -e .
    ```
-3. Adjust the configuration at `config/default_config.toml` or provide your own TOML file. The default points to a hosted Ollama-compatible endpoint at `https://341f48ced197.ngrok-free.app/v1/completions`, targeting the faster `deepseek-r1:1.5b` model with a 120 s request timeout; swap in your own URL/model or tweak `timeout` if needed. The L-system grammar itself lives in `config/grammars/classic.toml` and is referenced by name in the config, while narrator prompts and fallbacks live in `config/prompts/default_prompts.toml`. Each unique symbol prompts the narrator once (responses are cached after stripping any `<think>...</think>` metadata), so performance scales with the variety of room types rather than total rooms.
-4. Generate a dungeon and descriptions:
+   > Windows + Python 3.10: install the TOML backport once (`pip install tomli`) before running the CLI.
+4. **Point the project at an Ollama endpoint**
+   - The default configuration (`config/default_config.toml`) references a sample remote endpoint. Replace `ollama.endpoint` with your own server or `http://127.0.0.1:11434` if Ollama is running locally.
+   - Update `ollama.model`, `ollama.options`, or prompt settings in `config/prompts/default_prompts.toml` to suit your lesson.
+
+## First Run
+1. **Generate and narrate a dungeon (CLI)**
    ```bash
    aidungeon --config config/default_config.toml --candidates 10
    ```
+   - The `--candidates` flag controls how many layouts are sampled before narration. Increase it for higher-quality selection at the cost of compute time.
+2. **Inspect the output**
+   - Use `--format ascii` for a text map and per-room breakdown.
+   - Use `--format json` to pipe structured data into other tools.
 
 If Ollama is unavailable, the CLI falls back to placeholder text so you can still iterate on the grammar design.
 
@@ -61,6 +93,7 @@ The configuration file governs both the grammar expansion and the narrative prom
 - Run the CLI with `python -m aidungeon.main --config config/default_config.toml`.
 - Extend `aidungeon/lsystem.py` for richer grammars or translation to tilemaps.
 - Update `aidungeon/narrative.py` to tweak prompt templates or integrate additional metadata.
+ - See `docs/generative_pipeline.md` for a step-by-step explanation of how the generative components interact (useful for classroom walkthroughs).
 
 ## License
 MIT

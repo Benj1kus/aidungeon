@@ -3,4 +3,4 @@ axiom = "T"
 iterations = 1
 
 [grammar.rules]
-T = "''(0.8), P(0.2)"
+T = "''(0.60), T(0.25), P(0.10), L(0.05)"
