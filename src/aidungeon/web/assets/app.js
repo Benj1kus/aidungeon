@@ -95,6 +95,7 @@
     });
   };
 
+  // ✅ оставляем только одно объявление
   const keyDirectionMap = { w: "north", a: "west", s: "south", d: "east" };
   const keyDirectionHints = { north: "W", south: "S", east: "D", west: "A" };
 
@@ -160,13 +161,11 @@
     if (!canvas || !state.dungeon) return;
     const ctx = canvas.getContext("2d");
 
-    // >>> пиксельный стиль (важно до рисования)
     if (ctx.imageSmoothingEnabled !== undefined) {
       ctx.imageSmoothingEnabled = false;
     }
 
     const rooms = Object.values(state.dungeon.rooms);
-
     const padding = 40;
     const width = (canvas.width = canvas.offsetWidth);
     const height = (canvas.height = canvas.offsetHeight);
@@ -307,7 +306,7 @@
     }
   };
 
-  const keyDirectionMap = { w: "north", a: "west", s: "south", d: "east" };
+  // ✅ оставляем только слушатель клавиш
   window.addEventListener("keydown", (event) => {
     if (!state.dungeon) return;
     const directionName = keyDirectionMap[event.key.toLowerCase()];
