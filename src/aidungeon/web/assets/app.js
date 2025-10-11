@@ -95,6 +95,9 @@
     });
   };
 
+  const keyDirectionMap = { w: "north", a: "west", s: "south", d: "east" };
+  const keyDirectionHints = { north: "W", south: "S", east: "D", west: "A" };
+
   const renderRoom = () => {
     if (!state.dungeon) return;
     const room = state.dungeon.rooms[state.currentRoom];
@@ -156,6 +159,12 @@
     const canvas = elements.canvas;
     if (!canvas || !state.dungeon) return;
     const ctx = canvas.getContext("2d");
+
+    // >>> пиксельный стиль (важно до рисования)
+    if (ctx.imageSmoothingEnabled !== undefined) {
+      ctx.imageSmoothingEnabled = false;
+    }
+
     const rooms = Object.values(state.dungeon.rooms);
 
     const padding = 40;
@@ -175,15 +184,16 @@
       (height - padding * 2) / spanY
     );
     const project = (room) => ({
-      x: padding + (room.position[0] - minX) * scale,
-      y: height - padding - (room.position[1] - minY) * scale,
+      x: Math.round(padding + (room.position[0] - minX) * scale),
+      y: Math.round(height - padding - (room.position[1] - minY) * scale),
     });
 
     ctx.clearRect(0, 0, width, height);
 
-    ctx.strokeStyle = "rgba(77, 182, 172, 0.35)";
+    // Рёбра
+    ctx.strokeStyle = "rgba(105, 184, 59, 0.45)";
     ctx.lineWidth = 2;
-    ctx.lineCap = "round";
+    ctx.lineCap = "butt";
     ctx.beginPath();
     rooms.forEach((room) => {
       const neighbors = state.dungeon.adjacency[room.id] || [];
@@ -197,40 +207,30 @@
     });
     ctx.stroke();
 
+    // Узлы
     rooms.forEach((room) => {
       const point = project(room);
       const visited = state.visited.has(room.id);
       const isActive = room.id === state.currentRoom;
 
       ctx.beginPath();
-      ctx.fillStyle = isActive ? "#ff8a65" : visited ? "#4db6ac" : "rgba(77, 182, 172, 0.25)";
-      ctx.shadowBlur = isActive ? 18 : visited ? 8 : 0;
-      ctx.shadowColor = ctx.fillStyle;
-      ctx.arc(point.x, point.y, isActive ? 7 : 5, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillStyle = isActive ? "#ff8a65" : visited ? "#69b83b" : "rgba(105, 184, 59, 0.25)";
+      ctx.fillRect(point.x - (isActive ? 5 : 4), point.y - (isActive ? 5 : 4), (isActive ? 10 : 8), (isActive ? 10 : 8));
 
       if (!visited) return;
 
       const hasItems = room.items && room.items.length;
       const hasMonsters = room.monsters && room.monsters.length;
 
-      ctx.shadowBlur = 0;
       if (hasItems) {
         ctx.fillStyle = "#ffd54f";
-        ctx.fillRect(point.x - 9, point.y - 14, 6, 6);
+        ctx.fillRect(point.x - 10, point.y - 14, 6, 6);
       }
       if (hasMonsters) {
         ctx.fillStyle = "#ef5350";
-        ctx.beginPath();
-        ctx.moveTo(point.x + 5, point.y + 8);
-        ctx.lineTo(point.x + 11, point.y + 14);
-        ctx.lineTo(point.x - 1, point.y + 14);
-        ctx.closePath();
-        ctx.fill();
+        ctx.fillRect(point.x + 6, point.y + 6, 6, 6);
       }
     });
-
-    ctx.shadowBlur = 0;
   };
 
   const normalizeDungeon = (raw) => {
@@ -277,9 +277,6 @@
     return { ...raw, rooms, adjacency, directions };
   };
 
-  const keyDirectionMap = { w: "north", a: "west", s: "south", d: "east" };
-  const keyDirectionHints = { north: "W", south: "S", east: "D", west: "A" };
-
   const tryMove = (directionName) => {
     if (!state.dungeon) return;
     const roomDirections = state.dungeon.directions[state.currentRoom] || {};
@@ -310,8 +307,7 @@
     }
   };
 
-  elements.resetButton.addEventListener("click", () => loadDungeon({ reload: true }));
-  window.addEventListener("resize", () => renderMap());
+  const keyDirectionMap = { w: "north", a: "west", s: "south", d: "east" };
   window.addEventListener("keydown", (event) => {
     if (!state.dungeon) return;
     const directionName = keyDirectionMap[event.key.toLowerCase()];
@@ -319,6 +315,9 @@
     event.preventDefault();
     tryMove(directionName);
   });
+
+  elements.resetButton.addEventListener("click", () => loadDungeon({ reload: true }));
+  window.addEventListener("resize", () => renderMap());
 
   loadDungeon();
 })();
