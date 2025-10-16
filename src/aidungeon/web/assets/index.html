@@ -5,26 +5,24 @@
   <title>AI Dungeon Explorer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-  <!-- Пиксельные шрифты (без файлов в репо) -->
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      /* Майкро-палитра */
-      --bg-0:#0b0f10;        /* глубина шахты */
-      --bg-1:#12191b;        /* панели */
-      --bg-2:#182225;        /* акцент панелей */
-      --edge:#2a3a3d;        /* «каменный» кант */
-      --ui:#3c8527;          /* трава/зелёный UI */
-      --ui-2:#69b83b;        /* светлый зелёный */
-      --ui-amber:#ffd54f;    /* факел/золото */
-      --ink:#e7f7f2;         /* текст */
-      --ink-dim:#a5c7bf;     /* приглушённый текст */
-      --danger:#ef5350;      /* враги */
-      --loot:#ffd54f;        /* лут */
+
+      --bg-0:#0b0f10;
+      --bg-1:#12191b;
+      --bg-2:#182225;
+      --edge:#2a3a3d;
+      --ui:#3c8527;
+      --ui-2:#69b83b;
+      --ui-amber:#ffd54f;
+      --ink:#e7f7f2;  
+      --ink-dim:#a5c7bf;  
+      --danger:#ef5350;   
+      --loot:#ffd54f;     
     }
 
-    /* Базовая стилизация */
     html,body{height:100%}
     body{
       margin:0;
@@ -32,13 +30,11 @@
         linear-gradient(0deg, rgba(0,0,0,.25), rgba(0,0,0,.25)),
         repeating-linear-gradient(0deg, var(--bg-0), var(--bg-0) 4px, #0a0d0e 4px, #0a0d0e 8px);
       color:var(--ink);
-      /* пиксельный шрифт заголовков + читабельный моно-шрифт текста */
       font-family:"VT323", ui-monospace, Menlo, Consolas, monospace;
       letter-spacing:.2px;
       image-rendering: pixelated;
     }
 
-    /* Заголовки — грубый пиксельный */
     h1,h2,h3,button,header,footer{
       font-family:"Press Start 2P","VT323",monospace;
       letter-spacing:0;
@@ -64,7 +60,7 @@
     .panel{
       background: var(--bg-1);
       padding: 12px;
-      border-radius: 0; /* квадратный пиксельный стиль */
+      border-radius: 0; 
       box-shadow:
         0 0 0 3px #000 inset,
         0 0 0 1px var(--edge) inset,
@@ -117,10 +113,9 @@
         0 0 0 3px #000 inset,
         0 0 0 1px var(--edge) inset,
         0 4px 0 0 #000;
-      image-rendering: pixelated; /* важный момент */
+      image-rendering: pixelated; 
     }
 
-    /* Торговец (Villager Trader Post) */
     .trade{
       margin-top: 12px;
       padding: 10px;
@@ -138,14 +133,12 @@
       margin-top:8px; color:var(--ui-amber); font-weight:700; min-height:1.2em
     }
 
-    /* Статусы */
     .status{ display:flex; gap:16px; align-items:center; font-size:14px }
 
-    /* Заголовки покрупнее, но пиксельные */
     h1{ font-size:16px; }
     h2{ font-size:14px; }
     h3{ font-size:12px; }
-    p, li, button, .status, .chips span{ font-size:18px; } /* VT323 крупнее, чтобы читалось */
+    p, li, button, .status, .chips span{ font-size:18px; }
   </style>
 </head>
 <body>
