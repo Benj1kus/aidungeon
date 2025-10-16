@@ -1,6 +1,6 @@
 [dungeon]
 grammar_file = "grammars/classic.toml"
-iterations = 3
+iterations = 4
 
 [dungeon.symbols]
 F = { label = "Mineshaft corridor",  tags = ["cobblestone", "oak-supports", "torchlit"] }
