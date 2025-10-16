@@ -30,14 +30,12 @@ B = { label = "Bone",                tags = ["mob-drop", "white", "stack"] }
 C = { label = "Coal",                tags = ["fuel", "black", "lump"] }
 
 [content.items.grammars]
-# F/K/M — как раньше; для V используем «богатый» лут святилища.
 F = "grammars/items/corridor.toml"
 K = "grammars/items/shrine.toml"
 M = "grammars/items/lair.toml"
 V = "grammars/items/shrine.toml"
 
 [content.monsters.symbols]
-# Символы монстров остаются прежними (S,W,H,V,F,N), но лейблы под Minecraft:
 S = { label = "Skeleton",   tags = ["ranged", "bones", "ambush"] }
 W = { label = "Witch",      tags = ["potion", "cackle", "hex"] }
 H = { label = "Husk",       tags = ["desert", "zombie", "dry"] }
@@ -46,7 +44,6 @@ F = { label = "Cave Spider",tags = ["poison", "webs", "swift"] }
 N = { label = "Zombie",     tags = ["undead", "groan", "melee"] }
 
 [content.monsters.grammars]
-# F/K/M — как раньше; для V берём «сдержанную» частоту встреч как у святилища.
 F = "grammars/monsters/corridor.toml"
 K = "grammars/monsters/shrine.toml"
 M = "grammars/monsters/lair.toml"
@@ -57,8 +54,6 @@ candidate_count = 10
 target_room_count = 30
 
 [evaluation.weights]
-# Рекомендация под Майнкрафт-шахту: поощряем разнообразие комнат и разветвления,
-# умеренно ценим присутствие лута и монстров, штрафуем тупики.
 room_diversity   = 1.5
 branching_factor = 1.5
 loot_presence    = 0.6
