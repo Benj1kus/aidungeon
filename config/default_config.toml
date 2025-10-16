@@ -59,9 +59,10 @@ target_room_count = 30
 [evaluation.weights]
 # Рекомендация под Майнкрафт-шахту: поощряем разнообразие комнат и разветвления,
 # умеренно ценим присутствие лута и монстров, штрафуем тупики.
-room_diversity   = 1.2
-branching_factor = 1.0
+room_diversity   = 1.5
+branching_factor = 1.5
 loot_presence    = 0.6
-monster_presence = 0.35
-dead_end_penalty = -0.7
+monster_presence = 0.30
+dead_end_penalty = -0.5
 room_count       = 0.3
+
