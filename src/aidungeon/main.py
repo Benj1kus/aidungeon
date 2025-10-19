@@ -67,6 +67,7 @@ def _select_best_dungeon(config, iterations_override: int | None, candidate_coun
         raise RuntimeError("Failed to generate any dungeon candidates.")
     return best_dungeon, best_seed, best_score, best_metrics
 
+
 def _apply_markov_names(config):
     """Подменяет имена монстров на сгенерированные через цепи Маркова."""
     gen = MarkovNameGenerator(MINECRAFT_MONSTERS, n=3)
@@ -75,11 +76,11 @@ def _apply_markov_names(config):
         random_name = gen.generate()
         new_symbols[key] = type(sym)(label=random_name, tags=sym.tags)
     config.content.monsters.symbols = new_symbols
+
     print("\n=== Generated monster names (Markov system) ===")
     for key, sym in config.content.monsters.symbols.items():
         print(f"{key}: {sym.label}")
-        print("==============================================\n")
-
+    print("==============================================\n")
 
 
 def build_dungeon(
@@ -112,9 +113,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     config = load_config(args.config)
-    candidate_count = args.candidates if args.candidates is not None else config.evaluation.candidate_count
+    _apply_markov_names(config)  # ✅ теперь генерация имён работает и при CLI-запуске
 
+    candidate_count = args.candidates if args.candidates is not None else config.evaluation.candidate_count
     rng = random.Random()
+
     _, best_seed, best_score, best_metrics = _select_best_dungeon(
         config, args.iterations, candidate_count, rng
     )
