@@ -7,6 +7,7 @@ src/aidungeon/dungeon.py
 src/aidungeon/evaluation.py
 src/aidungeon/lsystem.py
 src/aidungeon/main.py
+src/aidungeon/markov_names.py
 src/aidungeon/narrative.py
 src/aidungeon/web/__init__.py
 src/aidungeon/web/app.py
