@@ -72,21 +72,26 @@ def _select_best_dungeon(config, iterations_override: int | None, candidate_coun
 def _apply_markov_names(config):
     """Подменяет имена монстров на сгенерированные через цепи Маркова."""
     gen = MarkovNameGenerator(MINECRAFT_MONSTERS, n=3)
+
+    # Генерируем новые символы
     new_symbols = {}
     for key, sym in config.content.monsters.symbols.items():
         random_name = gen.generate()
         new_symbols[key] = type(sym)(label=random_name, tags=sym.tags)
 
-    # создаём новую копию контента с обновлёнными символами (так как dataclass заморожен)
-    config.content = replace(
-        config.content,
-        monsters=replace(config.content.monsters, symbols=new_symbols)
-    )
+    # Полностью пересобираем копии уровней (frozen dataclasses)
+    new_monsters = replace(config.content.monsters, symbols=new_symbols)
+    new_content = replace(config.content, monsters=new_monsters)
+    new_config = replace(config, content=new_content)
 
+    # Возвращаем обновлённую копию (вместо модификации frozen объекта)
     print("\n=== Generated monster names (Markov system) ===")
     for key, sym in new_symbols.items():
         print(f"{key}: {sym.label}")
     print("==============================================\n")
+
+    return new_config
+
 
 
 def build_dungeon(
@@ -95,7 +100,7 @@ def build_dungeon(
     candidate_count: int | None = None,
 ):
     config = load_config(config_path)
-    _apply_markov_names(config)
+    config = _apply_markov_names(config)
     effective_candidates = candidate_count if candidate_count is not None else config.evaluation.candidate_count
 
     rng = random.Random()
@@ -119,7 +124,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     config = load_config(args.config)
-    _apply_markov_names(config)  # ✅ теперь генерация имён работает и при CLI-запуске
+    config = _apply_markov_names(config)  # ✅ теперь генерация имён работает и при CLI-запуске
 
     candidate_count = args.candidates if args.candidates is not None else config.evaluation.candidate_count
     rng = random.Random()
