@@ -1,4 +1,5 @@
 from __future__ import annotations
+from dataclasses import replace
 from aidungeon.markov_names import MarkovNameGenerator, MINECRAFT_MONSTERS
 
 import argparse
@@ -75,10 +76,15 @@ def _apply_markov_names(config):
     for key, sym in config.content.monsters.symbols.items():
         random_name = gen.generate()
         new_symbols[key] = type(sym)(label=random_name, tags=sym.tags)
-    config.content.monsters.symbols = new_symbols
+
+    # создаём новую копию контента с обновлёнными символами (так как dataclass заморожен)
+    config.content = replace(
+        config.content,
+        monsters=replace(config.content.monsters, symbols=new_symbols)
+    )
 
     print("\n=== Generated monster names (Markov system) ===")
-    for key, sym in config.content.monsters.symbols.items():
+    for key, sym in new_symbols.items():
         print(f"{key}: {sym.label}")
     print("==============================================\n")
 
