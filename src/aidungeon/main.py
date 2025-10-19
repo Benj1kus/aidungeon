@@ -75,6 +75,11 @@ def _apply_markov_names(config):
         random_name = gen.generate()
         new_symbols[key] = type(sym)(label=random_name, tags=sym.tags)
     config.content.monsters.symbols = new_symbols
+    print("\n=== Generated monster names (Markov system) ===")
+    for key, sym in config.content.monsters.symbols.items():
+        print(f"{key}: {sym.label}")
+        print("==============================================\n")
+
 
 
 def build_dungeon(
