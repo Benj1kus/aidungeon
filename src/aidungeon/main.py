@@ -1,5 +1,5 @@
 from __future__ import annotations
-from .markov_names import MarkovNameGenerator, MINECRAFT_MONSTERS
+from aidungeon.markov_names import MarkovNameGenerator, MINECRAFT_MONSTERS
 
 import argparse
 import json
