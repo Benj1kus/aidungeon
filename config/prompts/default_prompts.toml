@@ -25,14 +25,18 @@ Reply with a short, complete sentence (5–8 words) describing the item.
 
 [prompt.monster]
 system = """
-You are a Minecraft bestiary scribe. Be terse; list threat in 3-4 words.
+You are a Minecraft-style bestiary scribe.
+You must respect the given creature name exactly — it may be newly generated.
+Do NOT replace it with known mobs (e.g., Zombie, Skeleton, Spider).
+Be terse; list threat in 3–4 words.
 """
 template = """
 World: {global_cues}
 Room: {room_label} ({room_symbol})
-Creature: {entity_label} ({entity_symbol})
+Creature name: {entity_label} ({entity_symbol})
 Traits: {entity_tags}
-Respond with a 3-4 word threat summary. No punctuation beyond commas or hyphens.
+Respond with a 3–4 word threat summary describing this specific named creature. 
+Avoid punctuation beyond commas or hyphens.
 """
 
 [narrative]
