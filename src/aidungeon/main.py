@@ -1,4 +1,5 @@
 from __future__ import annotations
+from .markov_names import MarkovNameGenerator, MINECRAFT_MONSTERS
 
 import argparse
 import json
@@ -66,6 +67,15 @@ def _select_best_dungeon(config, iterations_override: int | None, candidate_coun
         raise RuntimeError("Failed to generate any dungeon candidates.")
     return best_dungeon, best_seed, best_score, best_metrics
 
+def _apply_markov_names(config):
+    """Подменяет имена монстров на сгенерированные через цепи Маркова."""
+    gen = MarkovNameGenerator(MINECRAFT_MONSTERS, n=3)
+    new_symbols = {}
+    for key, sym in config.content.monsters.symbols.items():
+        random_name = gen.generate()
+        new_symbols[key] = type(sym)(label=random_name, tags=sym.tags)
+    config.content.monsters.symbols = new_symbols
+
 
 def build_dungeon(
     config_path: Path,
@@ -73,6 +83,7 @@ def build_dungeon(
     candidate_count: int | None = None,
 ):
     config = load_config(config_path)
+    _apply_markov_names(config)
     effective_candidates = candidate_count if candidate_count is not None else config.evaluation.candidate_count
 
     rng = random.Random()
